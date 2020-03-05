@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri Oct 18 13:38:44 2019 by ROOT version 6.12/04
+// Thu Mar  5 20:18:15 2020 by ROOT version 6.14/00
 // from TTree Delphes/Analysis tree
-// found on file: /beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/test_bbWW/delphes_1.root
+// found on file: /home/pmandrik/work/analyses/3_FCNC_HH_anomal/anom_couplings/generate/bbWW_0/card_0/HH_bbWW/Events/run_01//tag_1_delphes_events.root
 //////////////////////////////////////////////////////////
 
 #ifndef Delphes_h
@@ -23,11 +23,9 @@ public :
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
    static constexpr Int_t kMaxEvent = 1;
-   static constexpr Int_t kMaxEventLHEF = 1;
-   static constexpr Int_t kMaxWeightLHEF = 40;
    static constexpr Int_t kMaxGenJet = 18;
    static constexpr Int_t kMaxGenMissingET = 1;
-   static constexpr Int_t kMaxJet = 16;
+   static constexpr Int_t kMaxJet = 18;
    static constexpr Int_t kMaxElectron = 4;
    static constexpr Int_t kMaxPhoton = 2;
    static constexpr Int_t kMaxMuon = 4;
@@ -55,24 +53,6 @@ public :
    Float_t         Event_PDF1[kMaxEvent];   //[Event_]
    Float_t         Event_PDF2[kMaxEvent];   //[Event_]
    Int_t           Event_size;
-   Int_t           EventLHEF_;
-   UInt_t          EventLHEF_fUniqueID[kMaxEventLHEF];   //[EventLHEF_]
-   UInt_t          EventLHEF_fBits[kMaxEventLHEF];   //[EventLHEF_]
-   Long64_t        EventLHEF_Number[kMaxEventLHEF];   //[EventLHEF_]
-   Float_t         EventLHEF_ReadTime[kMaxEventLHEF];   //[EventLHEF_]
-   Float_t         EventLHEF_ProcTime[kMaxEventLHEF];   //[EventLHEF_]
-   Int_t           EventLHEF_ProcessID[kMaxEventLHEF];   //[EventLHEF_]
-   Float_t         EventLHEF_Weight[kMaxEventLHEF];   //[EventLHEF_]
-   Float_t         EventLHEF_ScalePDF[kMaxEventLHEF];   //[EventLHEF_]
-   Float_t         EventLHEF_AlphaQED[kMaxEventLHEF];   //[EventLHEF_]
-   Float_t         EventLHEF_AlphaQCD[kMaxEventLHEF];   //[EventLHEF_]
-   Int_t           EventLHEF_size;
-   Int_t           WeightLHEF_;
-   UInt_t          WeightLHEF_fUniqueID[kMaxWeightLHEF];   //[WeightLHEF_]
-   UInt_t          WeightLHEF_fBits[kMaxWeightLHEF];   //[WeightLHEF_]
-   Int_t           WeightLHEF_ID[kMaxWeightLHEF];   //[WeightLHEF_]
-   Float_t         WeightLHEF_Weight[kMaxWeightLHEF];   //[WeightLHEF_]
-   Int_t           WeightLHEF_size;
    Int_t           GenJet_;
    UInt_t          GenJet_fUniqueID[kMaxGenJet];   //[GenJet_]
    UInt_t          GenJet_fBits[kMaxGenJet];   //[GenJet_]
@@ -238,24 +218,6 @@ public :
    TBranch        *b_Event_PDF1;   //!
    TBranch        *b_Event_PDF2;   //!
    TBranch        *b_Event_size;   //!
-   TBranch        *b_EventLHEF_;   //!
-   TBranch        *b_EventLHEF_fUniqueID;   //!
-   TBranch        *b_EventLHEF_fBits;   //!
-   TBranch        *b_EventLHEF_Number;   //!
-   TBranch        *b_EventLHEF_ReadTime;   //!
-   TBranch        *b_EventLHEF_ProcTime;   //!
-   TBranch        *b_EventLHEF_ProcessID;   //!
-   TBranch        *b_EventLHEF_Weight;   //!
-   TBranch        *b_EventLHEF_ScalePDF;   //!
-   TBranch        *b_EventLHEF_AlphaQED;   //!
-   TBranch        *b_EventLHEF_AlphaQCD;   //!
-   TBranch        *b_EventLHEF_size;   //!
-   TBranch        *b_WeightLHEF_;   //!
-   TBranch        *b_WeightLHEF_fUniqueID;   //!
-   TBranch        *b_WeightLHEF_fBits;   //!
-   TBranch        *b_WeightLHEF_ID;   //!
-   TBranch        *b_WeightLHEF_Weight;   //!
-   TBranch        *b_WeightLHEF_size;   //!
    TBranch        *b_GenJet_;   //!
    TBranch        *b_GenJet_fUniqueID;   //!
    TBranch        *b_GenJet_fBits;   //!
@@ -419,9 +381,9 @@ Delphes::Delphes(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/test_bbWW/delphes_1.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/home/pmandrik/work/analyses/3_FCNC_HH_anomal/anom_couplings/generate/bbWW_0/card_0/HH_bbWW/Events/run_01//tag_1_delphes_events.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/test_bbWW/delphes_1.root");
+         f = new TFile("/home/pmandrik/work/analyses/3_FCNC_HH_anomal/anom_couplings/generate/bbWW_0/card_0/HH_bbWW/Events/run_01//tag_1_delphes_events.root");
       }
       f->GetObject("Delphes",tree);
 
@@ -470,95 +432,77 @@ void Delphes::Init(TTree *tree)
    fCurrent = -1;
    fChain->SetMakeClass(1);
 
-   fChain->SetBranchAddress("Event", &Event_, &b_Event_);
-   fChain->SetBranchAddress("Event.fUniqueID", Event_fUniqueID, &b_Event_fUniqueID);
-   fChain->SetBranchAddress("Event.fBits", Event_fBits, &b_Event_fBits);
-   fChain->SetBranchAddress("Event.Number", Event_Number, &b_Event_Number);
-   fChain->SetBranchAddress("Event.ReadTime", Event_ReadTime, &b_Event_ReadTime);
-   fChain->SetBranchAddress("Event.ProcTime", Event_ProcTime, &b_Event_ProcTime);
-   fChain->SetBranchAddress("Event.ProcessID", Event_ProcessID, &b_Event_ProcessID);
-   fChain->SetBranchAddress("Event.MPI", Event_MPI, &b_Event_MPI);
-   fChain->SetBranchAddress("Event.Weight", Event_Weight, &b_Event_Weight);
-   fChain->SetBranchAddress("Event.Scale", Event_Scale, &b_Event_Scale);
-   fChain->SetBranchAddress("Event.AlphaQED", Event_AlphaQED, &b_Event_AlphaQED);
-   fChain->SetBranchAddress("Event.AlphaQCD", Event_AlphaQCD, &b_Event_AlphaQCD);
-   fChain->SetBranchAddress("Event.ID1", Event_ID1, &b_Event_ID1);
-   fChain->SetBranchAddress("Event.ID2", Event_ID2, &b_Event_ID2);
-   fChain->SetBranchAddress("Event.X1", Event_X1, &b_Event_X1);
-   fChain->SetBranchAddress("Event.X2", Event_X2, &b_Event_X2);
-   fChain->SetBranchAddress("Event.ScalePDF", Event_ScalePDF, &b_Event_ScalePDF);
-   fChain->SetBranchAddress("Event.PDF1", Event_PDF1, &b_Event_PDF1);
-   fChain->SetBranchAddress("Event.PDF2", Event_PDF2, &b_Event_PDF2);
-   fChain->SetBranchAddress("Event_size", &Event_size, &b_Event_size);
-   fChain->SetBranchAddress("EventLHEF", &EventLHEF_, &b_EventLHEF_);
-   fChain->SetBranchAddress("EventLHEF.fUniqueID", EventLHEF_fUniqueID, &b_EventLHEF_fUniqueID);
-   fChain->SetBranchAddress("EventLHEF.fBits", EventLHEF_fBits, &b_EventLHEF_fBits);
-   fChain->SetBranchAddress("EventLHEF.Number", EventLHEF_Number, &b_EventLHEF_Number);
-   fChain->SetBranchAddress("EventLHEF.ReadTime", EventLHEF_ReadTime, &b_EventLHEF_ReadTime);
-   fChain->SetBranchAddress("EventLHEF.ProcTime", EventLHEF_ProcTime, &b_EventLHEF_ProcTime);
-   fChain->SetBranchAddress("EventLHEF.ProcessID", EventLHEF_ProcessID, &b_EventLHEF_ProcessID);
-   fChain->SetBranchAddress("EventLHEF.Weight", EventLHEF_Weight, &b_EventLHEF_Weight);
-   fChain->SetBranchAddress("EventLHEF.ScalePDF", EventLHEF_ScalePDF, &b_EventLHEF_ScalePDF);
-   fChain->SetBranchAddress("EventLHEF.AlphaQED", EventLHEF_AlphaQED, &b_EventLHEF_AlphaQED);
-   fChain->SetBranchAddress("EventLHEF.AlphaQCD", EventLHEF_AlphaQCD, &b_EventLHEF_AlphaQCD);
-   fChain->SetBranchAddress("EventLHEF_size", &EventLHEF_size, &b_EventLHEF_size);
-   fChain->SetBranchAddress("WeightLHEF", &WeightLHEF_, &b_WeightLHEF_);
-   fChain->SetBranchAddress("WeightLHEF.fUniqueID", WeightLHEF_fUniqueID, &b_WeightLHEF_fUniqueID);
-   fChain->SetBranchAddress("WeightLHEF.fBits", WeightLHEF_fBits, &b_WeightLHEF_fBits);
-   fChain->SetBranchAddress("WeightLHEF.ID", WeightLHEF_ID, &b_WeightLHEF_ID);
-   fChain->SetBranchAddress("WeightLHEF.Weight", WeightLHEF_Weight, &b_WeightLHEF_Weight);
-   fChain->SetBranchAddress("WeightLHEF_size", &WeightLHEF_size, &b_WeightLHEF_size);
+   fChain->SetBranchAddress("Event", &Event_, &b_Event_); fChain->SetBranchStatus("Event", 0);
+   fChain->SetBranchAddress("Event.fUniqueID", Event_fUniqueID, &b_Event_fUniqueID); fChain->SetBranchStatus("Event.fUniqueID", 0);
+   fChain->SetBranchAddress("Event.fBits", Event_fBits, &b_Event_fBits); fChain->SetBranchStatus("Event.fBits", 0);
+   fChain->SetBranchAddress("Event.Number", Event_Number, &b_Event_Number); fChain->SetBranchStatus("Event.Number", 0);
+   fChain->SetBranchAddress("Event.ReadTime", Event_ReadTime, &b_Event_ReadTime); fChain->SetBranchStatus("Event.ReadTime", 0);
+   fChain->SetBranchAddress("Event.ProcTime", Event_ProcTime, &b_Event_ProcTime); fChain->SetBranchStatus("Event.ProcTime", 0);
+   fChain->SetBranchAddress("Event.ProcessID", Event_ProcessID, &b_Event_ProcessID); fChain->SetBranchStatus("Event.ProcessID", 0);
+   fChain->SetBranchAddress("Event.MPI", Event_MPI, &b_Event_MPI); fChain->SetBranchStatus("Event.MPI", 0);
+   fChain->SetBranchAddress("Event.Weight", Event_Weight, &b_Event_Weight); fChain->SetBranchStatus("Event.Weight", 0);
+   fChain->SetBranchAddress("Event.Scale", Event_Scale, &b_Event_Scale); fChain->SetBranchStatus("Event.Scale", 0);
+   fChain->SetBranchAddress("Event.AlphaQED", Event_AlphaQED, &b_Event_AlphaQED); fChain->SetBranchStatus("Event.AlphaQED", 0);
+   fChain->SetBranchAddress("Event.AlphaQCD", Event_AlphaQCD, &b_Event_AlphaQCD); fChain->SetBranchStatus("Event.AlphaQCD", 0);
+   fChain->SetBranchAddress("Event.ID1", Event_ID1, &b_Event_ID1); fChain->SetBranchStatus("Event.ID1", 0);
+   fChain->SetBranchAddress("Event.ID2", Event_ID2, &b_Event_ID2); fChain->SetBranchStatus("Event.ID2", 0);
+   fChain->SetBranchAddress("Event.X1", Event_X1, &b_Event_X1); fChain->SetBranchStatus("Event.X1", 0);
+   fChain->SetBranchAddress("Event.X2", Event_X2, &b_Event_X2); fChain->SetBranchStatus("Event.X2", 0);
+   fChain->SetBranchAddress("Event.ScalePDF", Event_ScalePDF, &b_Event_ScalePDF); fChain->SetBranchStatus("Event.ScalePDF", 0);
+   fChain->SetBranchAddress("Event.PDF1", Event_PDF1, &b_Event_PDF1); fChain->SetBranchStatus("Event.PDF1", 0);
+   fChain->SetBranchAddress("Event.PDF2", Event_PDF2, &b_Event_PDF2); fChain->SetBranchStatus("Event.PDF2", 0);
+   fChain->SetBranchAddress("Event_size", &Event_size, &b_Event_size); fChain->SetBranchStatus("Event_size", 0);
    fChain->SetBranchAddress("GenJet", &GenJet_, &b_GenJet_);
-   fChain->SetBranchAddress("GenJet.fUniqueID", GenJet_fUniqueID, &b_GenJet_fUniqueID);
-   fChain->SetBranchAddress("GenJet.fBits", GenJet_fBits, &b_GenJet_fBits);
+   fChain->SetBranchAddress("GenJet.fUniqueID", GenJet_fUniqueID, &b_GenJet_fUniqueID); fChain->SetBranchStatus("GenJet.fUniqueID", 0);
+   fChain->SetBranchAddress("GenJet.fBits", GenJet_fBits, &b_GenJet_fBits); fChain->SetBranchStatus("GenJet.fBits", 0);
    fChain->SetBranchAddress("GenJet.PT", GenJet_PT, &b_GenJet_PT);
    fChain->SetBranchAddress("GenJet.Eta", GenJet_Eta, &b_GenJet_Eta);
    fChain->SetBranchAddress("GenJet.Phi", GenJet_Phi, &b_GenJet_Phi);
-   fChain->SetBranchAddress("GenJet.T", GenJet_T, &b_GenJet_T);
+   fChain->SetBranchAddress("GenJet.T", GenJet_T, &b_GenJet_T); fChain->SetBranchStatus("GenJet.T", 0);
    fChain->SetBranchAddress("GenJet.Mass", GenJet_Mass, &b_GenJet_Mass);
-   fChain->SetBranchAddress("GenJet.DeltaEta", GenJet_DeltaEta, &b_GenJet_DeltaEta);
-   fChain->SetBranchAddress("GenJet.DeltaPhi", GenJet_DeltaPhi, &b_GenJet_DeltaPhi);
+   fChain->SetBranchAddress("GenJet.DeltaEta", GenJet_DeltaEta, &b_GenJet_DeltaEta); fChain->SetBranchStatus("GenJet.DeltaEta", 0);
+   fChain->SetBranchAddress("GenJet.DeltaPhi", GenJet_DeltaPhi, &b_GenJet_DeltaPhi); fChain->SetBranchStatus("GenJet.DeltaPhi", 0);
    fChain->SetBranchAddress("GenJet.Flavor", GenJet_Flavor, &b_GenJet_Flavor);
    fChain->SetBranchAddress("GenJet.FlavorAlgo", GenJet_FlavorAlgo, &b_GenJet_FlavorAlgo);
    fChain->SetBranchAddress("GenJet.FlavorPhys", GenJet_FlavorPhys, &b_GenJet_FlavorPhys);
    fChain->SetBranchAddress("GenJet.BTag", GenJet_BTag, &b_GenJet_BTag);
    fChain->SetBranchAddress("GenJet.BTagAlgo", GenJet_BTagAlgo, &b_GenJet_BTagAlgo);
    fChain->SetBranchAddress("GenJet.BTagPhys", GenJet_BTagPhys, &b_GenJet_BTagPhys);
-   fChain->SetBranchAddress("GenJet.TauTag", GenJet_TauTag, &b_GenJet_TauTag);
-   fChain->SetBranchAddress("GenJet.Charge", GenJet_Charge, &b_GenJet_Charge);
-   fChain->SetBranchAddress("GenJet.EhadOverEem", GenJet_EhadOverEem, &b_GenJet_EhadOverEem);
-   fChain->SetBranchAddress("GenJet.NCharged", GenJet_NCharged, &b_GenJet_NCharged);
-   fChain->SetBranchAddress("GenJet.NNeutrals", GenJet_NNeutrals, &b_GenJet_NNeutrals);
-   fChain->SetBranchAddress("GenJet.Beta", GenJet_Beta, &b_GenJet_Beta);
-   fChain->SetBranchAddress("GenJet.BetaStar", GenJet_BetaStar, &b_GenJet_BetaStar);
-   fChain->SetBranchAddress("GenJet.MeanSqDeltaR", GenJet_MeanSqDeltaR, &b_GenJet_MeanSqDeltaR);
-   fChain->SetBranchAddress("GenJet.PTD", GenJet_PTD, &b_GenJet_PTD);
-   fChain->SetBranchAddress("GenJet.FracPt[5]", GenJet_FracPt, &b_GenJet_FracPt);
-   fChain->SetBranchAddress("GenJet.Tau[5]", GenJet_Tau, &b_GenJet_Tau);
-   fChain->SetBranchAddress("GenJet.TrimmedP4[5]", GenJet_TrimmedP4, &b_GenJet_TrimmedP4);
-   fChain->SetBranchAddress("GenJet.PrunedP4[5]", GenJet_PrunedP4, &b_GenJet_PrunedP4);
-   fChain->SetBranchAddress("GenJet.SoftDroppedP4[5]", GenJet_SoftDroppedP4, &b_GenJet_SoftDroppedP4);
-   fChain->SetBranchAddress("GenJet.NSubJetsTrimmed", GenJet_NSubJetsTrimmed, &b_GenJet_NSubJetsTrimmed);
-   fChain->SetBranchAddress("GenJet.NSubJetsPruned", GenJet_NSubJetsPruned, &b_GenJet_NSubJetsPruned);
-   fChain->SetBranchAddress("GenJet.NSubJetsSoftDropped", GenJet_NSubJetsSoftDropped, &b_GenJet_NSubJetsSoftDropped);
+   fChain->SetBranchAddress("GenJet.TauTag", GenJet_TauTag, &b_GenJet_TauTag); fChain->SetBranchStatus("GenJet.TauTag", 0);
+   fChain->SetBranchAddress("GenJet.Charge", GenJet_Charge, &b_GenJet_Charge); fChain->SetBranchStatus("GenJet.Charge", 0);
+   fChain->SetBranchAddress("GenJet.EhadOverEem", GenJet_EhadOverEem, &b_GenJet_EhadOverEem); fChain->SetBranchStatus("GenJet.EhadOverEem", 0);
+   fChain->SetBranchAddress("GenJet.NCharged", GenJet_NCharged, &b_GenJet_NCharged); fChain->SetBranchStatus("GenJet.NCharged", 0);
+   fChain->SetBranchAddress("GenJet.NNeutrals", GenJet_NNeutrals, &b_GenJet_NNeutrals); fChain->SetBranchStatus("GenJet.NNeutrals", 0);
+   fChain->SetBranchAddress("GenJet.Beta", GenJet_Beta, &b_GenJet_Beta); fChain->SetBranchStatus("GenJet.Beta", 0);
+   fChain->SetBranchAddress("GenJet.BetaStar", GenJet_BetaStar, &b_GenJet_BetaStar); fChain->SetBranchStatus("GenJet.BetaStar", 0);
+   fChain->SetBranchAddress("GenJet.MeanSqDeltaR", GenJet_MeanSqDeltaR, &b_GenJet_MeanSqDeltaR); fChain->SetBranchStatus("GenJet.MeanSqDeltaR", 0);
+   fChain->SetBranchAddress("GenJet.PTD", GenJet_PTD, &b_GenJet_PTD); fChain->SetBranchStatus("GenJet.PTD", 0);
+   fChain->SetBranchAddress("GenJet.FracPt[5]", GenJet_FracPt, &b_GenJet_FracPt); fChain->SetBranchStatus("GenJet.FracPt[5]", 0);
+   fChain->SetBranchAddress("GenJet.Tau[5]", GenJet_Tau, &b_GenJet_Tau); fChain->SetBranchStatus("GenJet.Tau[5]", 0);
+   fChain->SetBranchAddress("GenJet.TrimmedP4[5]", GenJet_TrimmedP4, &b_GenJet_TrimmedP4); fChain->SetBranchStatus("GenJet.TrimmedP4[5]", 0);
+   fChain->SetBranchAddress("GenJet.PrunedP4[5]", GenJet_PrunedP4, &b_GenJet_PrunedP4); fChain->SetBranchStatus("GenJet.PrunedP4[5]", 0);
+   fChain->SetBranchAddress("GenJet.SoftDroppedP4[5]", GenJet_SoftDroppedP4, &b_GenJet_SoftDroppedP4); fChain->SetBranchStatus("GenJet.SoftDroppedP4[5]", 0);
+   fChain->SetBranchAddress("GenJet.NSubJetsTrimmed", GenJet_NSubJetsTrimmed, &b_GenJet_NSubJetsTrimmed); fChain->SetBranchStatus("GenJet.NSubJetsTrimmed", 0);
+   fChain->SetBranchAddress("GenJet.NSubJetsPruned", GenJet_NSubJetsPruned, &b_GenJet_NSubJetsPruned); fChain->SetBranchStatus("GenJet.NSubJetsPruned", 0);
+   fChain->SetBranchAddress("GenJet.NSubJetsSoftDropped", GenJet_NSubJetsSoftDropped, &b_GenJet_NSubJetsSoftDropped); fChain->SetBranchStatus("GenJet.NSubJetsSoftDropped", 0);
    fChain->SetBranchAddress("GenJet.Constituents", GenJet_Constituents, &b_GenJet_Constituents);
-   fChain->SetBranchAddress("GenJet.Particles", GenJet_Particles, &b_GenJet_Particles);
-   fChain->SetBranchAddress("GenJet.Area", GenJet_Area, &b_GenJet_Area);
-   fChain->SetBranchAddress("GenJet_size", &GenJet_size, &b_GenJet_size);
+   fChain->SetBranchAddress("GenJet.Particles", GenJet_Particles, &b_GenJet_Particles); fChain->SetBranchStatus("GenJet.Particles", 0);
+   fChain->SetBranchAddress("GenJet.Area", GenJet_Area, &b_GenJet_Area); fChain->SetBranchStatus("GenJet.Area", 0);
+   fChain->SetBranchAddress("GenJet_size", &GenJet_size, &b_GenJet_size); fChain->SetBranchStatus("GenJet_size", 0);
    fChain->SetBranchAddress("GenMissingET", &GenMissingET_, &b_GenMissingET_);
-   fChain->SetBranchAddress("GenMissingET.fUniqueID", GenMissingET_fUniqueID, &b_GenMissingET_fUniqueID);
-   fChain->SetBranchAddress("GenMissingET.fBits", GenMissingET_fBits, &b_GenMissingET_fBits);
+   fChain->SetBranchAddress("GenMissingET.fUniqueID", GenMissingET_fUniqueID, &b_GenMissingET_fUniqueID); fChain->SetBranchStatus("GenMissingET.fUniqueID", 0);
+   fChain->SetBranchAddress("GenMissingET.fBits", GenMissingET_fBits, &b_GenMissingET_fBits); fChain->SetBranchStatus("GenMissingET.fBits", 0);
    fChain->SetBranchAddress("GenMissingET.MET", GenMissingET_MET, &b_GenMissingET_MET);
    fChain->SetBranchAddress("GenMissingET.Eta", GenMissingET_Eta, &b_GenMissingET_Eta);
    fChain->SetBranchAddress("GenMissingET.Phi", GenMissingET_Phi, &b_GenMissingET_Phi);
    fChain->SetBranchAddress("GenMissingET_size", &GenMissingET_size, &b_GenMissingET_size);
    fChain->SetBranchAddress("Jet", &Jet_, &b_Jet_);
-   fChain->SetBranchAddress("Jet.fUniqueID", Jet_fUniqueID, &b_Jet_fUniqueID);
-   fChain->SetBranchAddress("Jet.fBits", Jet_fBits, &b_Jet_fBits);
+   fChain->SetBranchAddress("Jet.fUniqueID", Jet_fUniqueID, &b_Jet_fUniqueID); fChain->SetBranchStatus("Jet.fUniqueID", 0);
+   fChain->SetBranchAddress("Jet.fBits", Jet_fBits, &b_Jet_fBits); fChain->SetBranchStatus("Jet.fBits", 0);
    fChain->SetBranchAddress("Jet.PT", Jet_PT, &b_Jet_PT);
    fChain->SetBranchAddress("Jet.Eta", Jet_Eta, &b_Jet_Eta);
    fChain->SetBranchAddress("Jet.Phi", Jet_Phi, &b_Jet_Phi);
-   fChain->SetBranchAddress("Jet.T", Jet_T, &b_Jet_T);
+   fChain->SetBranchAddress("Jet.T", Jet_T, &b_Jet_T); fChain->SetBranchStatus("Jet.T", 0);
    fChain->SetBranchAddress("Jet.Mass", Jet_Mass, &b_Jet_Mass);
    fChain->SetBranchAddress("Jet.DeltaEta", Jet_DeltaEta, &b_Jet_DeltaEta);
    fChain->SetBranchAddress("Jet.DeltaPhi", Jet_DeltaPhi, &b_Jet_DeltaPhi);
@@ -568,89 +512,89 @@ void Delphes::Init(TTree *tree)
    fChain->SetBranchAddress("Jet.BTag", Jet_BTag, &b_Jet_BTag);
    fChain->SetBranchAddress("Jet.BTagAlgo", Jet_BTagAlgo, &b_Jet_BTagAlgo);
    fChain->SetBranchAddress("Jet.BTagPhys", Jet_BTagPhys, &b_Jet_BTagPhys);
-   fChain->SetBranchAddress("Jet.TauTag", Jet_TauTag, &b_Jet_TauTag);
-   fChain->SetBranchAddress("Jet.Charge", Jet_Charge, &b_Jet_Charge);
-   fChain->SetBranchAddress("Jet.EhadOverEem", Jet_EhadOverEem, &b_Jet_EhadOverEem);
-   fChain->SetBranchAddress("Jet.NCharged", Jet_NCharged, &b_Jet_NCharged);
-   fChain->SetBranchAddress("Jet.NNeutrals", Jet_NNeutrals, &b_Jet_NNeutrals);
-   fChain->SetBranchAddress("Jet.Beta", Jet_Beta, &b_Jet_Beta);
-   fChain->SetBranchAddress("Jet.BetaStar", Jet_BetaStar, &b_Jet_BetaStar);
-   fChain->SetBranchAddress("Jet.MeanSqDeltaR", Jet_MeanSqDeltaR, &b_Jet_MeanSqDeltaR);
-   fChain->SetBranchAddress("Jet.PTD", Jet_PTD, &b_Jet_PTD);
-   fChain->SetBranchAddress("Jet.FracPt[5]", Jet_FracPt, &b_Jet_FracPt);
-   fChain->SetBranchAddress("Jet.Tau[5]", Jet_Tau, &b_Jet_Tau);
-   fChain->SetBranchAddress("Jet.TrimmedP4[5]", Jet_TrimmedP4, &b_Jet_TrimmedP4);
-   fChain->SetBranchAddress("Jet.PrunedP4[5]", Jet_PrunedP4, &b_Jet_PrunedP4);
-   fChain->SetBranchAddress("Jet.SoftDroppedP4[5]", Jet_SoftDroppedP4, &b_Jet_SoftDroppedP4);
-   fChain->SetBranchAddress("Jet.NSubJetsTrimmed", Jet_NSubJetsTrimmed, &b_Jet_NSubJetsTrimmed);
-   fChain->SetBranchAddress("Jet.NSubJetsPruned", Jet_NSubJetsPruned, &b_Jet_NSubJetsPruned);
-   fChain->SetBranchAddress("Jet.NSubJetsSoftDropped", Jet_NSubJetsSoftDropped, &b_Jet_NSubJetsSoftDropped);
+   fChain->SetBranchAddress("Jet.TauTag", Jet_TauTag, &b_Jet_TauTag); fChain->SetBranchStatus("Jet.TauTag", 0);
+   fChain->SetBranchAddress("Jet.Charge", Jet_Charge, &b_Jet_Charge); fChain->SetBranchStatus("Jet.Charge", 0);
+   fChain->SetBranchAddress("Jet.EhadOverEem", Jet_EhadOverEem, &b_Jet_EhadOverEem); fChain->SetBranchStatus("Jet.EhadOverEem", 0);
+   fChain->SetBranchAddress("Jet.NCharged", Jet_NCharged, &b_Jet_NCharged); fChain->SetBranchStatus("Jet.NCharged", 0);
+   fChain->SetBranchAddress("Jet.NNeutrals", Jet_NNeutrals, &b_Jet_NNeutrals); fChain->SetBranchStatus("Jet.NNeutrals", 0);
+   fChain->SetBranchAddress("Jet.Beta", Jet_Beta, &b_Jet_Beta); fChain->SetBranchStatus("Jet.Beta", 0);
+   fChain->SetBranchAddress("Jet.BetaStar", Jet_BetaStar, &b_Jet_BetaStar); fChain->SetBranchStatus("Jet.BetaStar", 0);
+   fChain->SetBranchAddress("Jet.MeanSqDeltaR", Jet_MeanSqDeltaR, &b_Jet_MeanSqDeltaR); fChain->SetBranchStatus("Jet.MeanSqDeltaR", 0);
+   fChain->SetBranchAddress("Jet.PTD", Jet_PTD, &b_Jet_PTD); fChain->SetBranchStatus("Jet.PTD", 0);
+   fChain->SetBranchAddress("Jet.FracPt[5]", Jet_FracPt, &b_Jet_FracPt); fChain->SetBranchStatus("Jet.FracPt[5]", 0);
+   fChain->SetBranchAddress("Jet.Tau[5]", Jet_Tau, &b_Jet_Tau); fChain->SetBranchStatus("Jet.Tau[5]", 0);
+   fChain->SetBranchAddress("Jet.TrimmedP4[5]", Jet_TrimmedP4, &b_Jet_TrimmedP4); fChain->SetBranchStatus("Jet.TrimmedP4[5]", 0);
+   fChain->SetBranchAddress("Jet.PrunedP4[5]", Jet_PrunedP4, &b_Jet_PrunedP4); fChain->SetBranchStatus("Jet.PrunedP4[5]", 0);
+   fChain->SetBranchAddress("Jet.SoftDroppedP4[5]", Jet_SoftDroppedP4, &b_Jet_SoftDroppedP4); fChain->SetBranchStatus("Jet.SoftDroppedP4[5]", 0);
+   fChain->SetBranchAddress("Jet.NSubJetsTrimmed", Jet_NSubJetsTrimmed, &b_Jet_NSubJetsTrimmed); fChain->SetBranchStatus("Jet.NSubJetsTrimmed", 0);
+   fChain->SetBranchAddress("Jet.NSubJetsPruned", Jet_NSubJetsPruned, &b_Jet_NSubJetsPruned); fChain->SetBranchStatus("Jet.NSubJetsPruned", 0);
+   fChain->SetBranchAddress("Jet.NSubJetsSoftDropped", Jet_NSubJetsSoftDropped, &b_Jet_NSubJetsSoftDropped); fChain->SetBranchStatus("Jet.NSubJetsSoftDropped", 0);
    fChain->SetBranchAddress("Jet.Constituents", Jet_Constituents, &b_Jet_Constituents);
-   fChain->SetBranchAddress("Jet.Particles", Jet_Particles, &b_Jet_Particles);
-   fChain->SetBranchAddress("Jet.Area", Jet_Area, &b_Jet_Area);
-   fChain->SetBranchAddress("Jet_size", &Jet_size, &b_Jet_size);
+   fChain->SetBranchAddress("Jet.Particles", Jet_Particles, &b_Jet_Particles); fChain->SetBranchStatus("Jet.Particles", 0);
+   fChain->SetBranchAddress("Jet.Area", Jet_Area, &b_Jet_Area); fChain->SetBranchStatus("Jet.Area", 0);
+   fChain->SetBranchAddress("Jet_size", &Jet_size, &b_Jet_size); fChain->SetBranchStatus("Jet_size", 0);
    fChain->SetBranchAddress("Electron", &Electron_, &b_Electron_);
-   fChain->SetBranchAddress("Electron.fUniqueID", Electron_fUniqueID, &b_Electron_fUniqueID);
-   fChain->SetBranchAddress("Electron.fBits", Electron_fBits, &b_Electron_fBits);
+   fChain->SetBranchAddress("Electron.fUniqueID", Electron_fUniqueID, &b_Electron_fUniqueID); fChain->SetBranchStatus("Electron.fUniqueID", 0);
+   fChain->SetBranchAddress("Electron.fBits", Electron_fBits, &b_Electron_fBits); fChain->SetBranchStatus("Electron.fBits", 0);
    fChain->SetBranchAddress("Electron.PT", Electron_PT, &b_Electron_PT);
    fChain->SetBranchAddress("Electron.Eta", Electron_Eta, &b_Electron_Eta);
    fChain->SetBranchAddress("Electron.Phi", Electron_Phi, &b_Electron_Phi);
-   fChain->SetBranchAddress("Electron.T", Electron_T, &b_Electron_T);
+   fChain->SetBranchAddress("Electron.T", Electron_T, &b_Electron_T); fChain->SetBranchStatus("Electron.T", 0);
    fChain->SetBranchAddress("Electron.Charge", Electron_Charge, &b_Electron_Charge);
-   fChain->SetBranchAddress("Electron.EhadOverEem", Electron_EhadOverEem, &b_Electron_EhadOverEem);
+   fChain->SetBranchAddress("Electron.EhadOverEem", Electron_EhadOverEem, &b_Electron_EhadOverEem); fChain->SetBranchStatus("Electron.EhadOverEem", 0);
    fChain->SetBranchAddress("Electron.Particle", Electron_Particle, &b_Electron_Particle);
    fChain->SetBranchAddress("Electron.IsolationVar", Electron_IsolationVar, &b_Electron_IsolationVar);
    fChain->SetBranchAddress("Electron.IsolationVarRhoCorr", Electron_IsolationVarRhoCorr, &b_Electron_IsolationVarRhoCorr);
-   fChain->SetBranchAddress("Electron.SumPtCharged", Electron_SumPtCharged, &b_Electron_SumPtCharged);
-   fChain->SetBranchAddress("Electron.SumPtNeutral", Electron_SumPtNeutral, &b_Electron_SumPtNeutral);
-   fChain->SetBranchAddress("Electron.SumPtChargedPU", Electron_SumPtChargedPU, &b_Electron_SumPtChargedPU);
-   fChain->SetBranchAddress("Electron.SumPt", Electron_SumPt, &b_Electron_SumPt);
-   fChain->SetBranchAddress("Electron_size", &Electron_size, &b_Electron_size);
+   fChain->SetBranchAddress("Electron.SumPtCharged", Electron_SumPtCharged, &b_Electron_SumPtCharged); fChain->SetBranchStatus("Electron.SumPtCharged", 0);
+   fChain->SetBranchAddress("Electron.SumPtNeutral", Electron_SumPtNeutral, &b_Electron_SumPtNeutral); fChain->SetBranchStatus("Electron.SumPtNeutral", 0);
+   fChain->SetBranchAddress("Electron.SumPtChargedPU", Electron_SumPtChargedPU, &b_Electron_SumPtChargedPU); fChain->SetBranchStatus("Electron.SumPtChargedPU", 0);
+   fChain->SetBranchAddress("Electron.SumPt", Electron_SumPt, &b_Electron_SumPt); fChain->SetBranchStatus("Electron.SumPt", 0);
+   fChain->SetBranchAddress("Electron_size", &Electron_size, &b_Electron_size); fChain->SetBranchStatus("Electron_size", 0);
    fChain->SetBranchAddress("Photon", &Photon_, &b_Photon_);
-   fChain->SetBranchAddress("Photon.fUniqueID", Photon_fUniqueID, &b_Photon_fUniqueID);
-   fChain->SetBranchAddress("Photon.fBits", Photon_fBits, &b_Photon_fBits);
+   fChain->SetBranchAddress("Photon.fUniqueID", Photon_fUniqueID, &b_Photon_fUniqueID); fChain->SetBranchStatus("Photon.fUniqueID", 0);
+   fChain->SetBranchAddress("Photon.fBits", Photon_fBits, &b_Photon_fBits); fChain->SetBranchStatus("Photon.fBits", 0);
    fChain->SetBranchAddress("Photon.PT", Photon_PT, &b_Photon_PT);
    fChain->SetBranchAddress("Photon.Eta", Photon_Eta, &b_Photon_Eta);
    fChain->SetBranchAddress("Photon.Phi", Photon_Phi, &b_Photon_Phi);
    fChain->SetBranchAddress("Photon.E", Photon_E, &b_Photon_E);
-   fChain->SetBranchAddress("Photon.T", Photon_T, &b_Photon_T);
+   fChain->SetBranchAddress("Photon.T", Photon_T, &b_Photon_T); fChain->SetBranchStatus("Photon.T", 0);
    fChain->SetBranchAddress("Photon.EhadOverEem", Photon_EhadOverEem, &b_Photon_EhadOverEem);
    fChain->SetBranchAddress("Photon.Particles", Photon_Particles, &b_Photon_Particles);
    fChain->SetBranchAddress("Photon.IsolationVar", Photon_IsolationVar, &b_Photon_IsolationVar);
    fChain->SetBranchAddress("Photon.IsolationVarRhoCorr", Photon_IsolationVarRhoCorr, &b_Photon_IsolationVarRhoCorr);
-   fChain->SetBranchAddress("Photon.SumPtCharged", Photon_SumPtCharged, &b_Photon_SumPtCharged);
-   fChain->SetBranchAddress("Photon.SumPtNeutral", Photon_SumPtNeutral, &b_Photon_SumPtNeutral);
-   fChain->SetBranchAddress("Photon.SumPtChargedPU", Photon_SumPtChargedPU, &b_Photon_SumPtChargedPU);
-   fChain->SetBranchAddress("Photon.SumPt", Photon_SumPt, &b_Photon_SumPt);
-   fChain->SetBranchAddress("Photon_size", &Photon_size, &b_Photon_size);
+   fChain->SetBranchAddress("Photon.SumPtCharged", Photon_SumPtCharged, &b_Photon_SumPtCharged); fChain->SetBranchStatus("Photon.SumPtCharged", 0);
+   fChain->SetBranchAddress("Photon.SumPtNeutral", Photon_SumPtNeutral, &b_Photon_SumPtNeutral); fChain->SetBranchStatus("Photon.SumPtNeutral", 0);
+   fChain->SetBranchAddress("Photon.SumPtChargedPU", Photon_SumPtChargedPU, &b_Photon_SumPtChargedPU); fChain->SetBranchStatus("Photon.SumPtChargedPU", 0);
+   fChain->SetBranchAddress("Photon.SumPt", Photon_SumPt, &b_Photon_SumPt); fChain->SetBranchStatus("Photon.SumPt", 0);
+   fChain->SetBranchAddress("Photon_size", &Photon_size, &b_Photon_size); fChain->SetBranchStatus("Photon_size", 0);
    fChain->SetBranchAddress("Muon", &Muon_, &b_Muon_);
-   fChain->SetBranchAddress("Muon.fUniqueID", Muon_fUniqueID, &b_Muon_fUniqueID);
-   fChain->SetBranchAddress("Muon.fBits", Muon_fBits, &b_Muon_fBits);
+   fChain->SetBranchAddress("Muon.fUniqueID", Muon_fUniqueID, &b_Muon_fUniqueID); fChain->SetBranchStatus("Muon.fUniqueID", 0);
+   fChain->SetBranchAddress("Muon.fBits", Muon_fBits, &b_Muon_fBits); fChain->SetBranchStatus("Muon.fBits", 0);
    fChain->SetBranchAddress("Muon.PT", Muon_PT, &b_Muon_PT);
    fChain->SetBranchAddress("Muon.Eta", Muon_Eta, &b_Muon_Eta);
    fChain->SetBranchAddress("Muon.Phi", Muon_Phi, &b_Muon_Phi);
-   fChain->SetBranchAddress("Muon.T", Muon_T, &b_Muon_T);
+   fChain->SetBranchAddress("Muon.T", Muon_T, &b_Muon_T); fChain->SetBranchStatus("Muon.T", 0);
    fChain->SetBranchAddress("Muon.Charge", Muon_Charge, &b_Muon_Charge);
    fChain->SetBranchAddress("Muon.Particle", Muon_Particle, &b_Muon_Particle);
    fChain->SetBranchAddress("Muon.IsolationVar", Muon_IsolationVar, &b_Muon_IsolationVar);
    fChain->SetBranchAddress("Muon.IsolationVarRhoCorr", Muon_IsolationVarRhoCorr, &b_Muon_IsolationVarRhoCorr);
-   fChain->SetBranchAddress("Muon.SumPtCharged", Muon_SumPtCharged, &b_Muon_SumPtCharged);
-   fChain->SetBranchAddress("Muon.SumPtNeutral", Muon_SumPtNeutral, &b_Muon_SumPtNeutral);
-   fChain->SetBranchAddress("Muon.SumPtChargedPU", Muon_SumPtChargedPU, &b_Muon_SumPtChargedPU);
-   fChain->SetBranchAddress("Muon.SumPt", Muon_SumPt, &b_Muon_SumPt);
-   fChain->SetBranchAddress("Muon_size", &Muon_size, &b_Muon_size);
-   fChain->SetBranchAddress("MissingET", &MissingET_, &b_MissingET_);
-   fChain->SetBranchAddress("MissingET.fUniqueID", MissingET_fUniqueID, &b_MissingET_fUniqueID);
-   fChain->SetBranchAddress("MissingET.fBits", MissingET_fBits, &b_MissingET_fBits);
+   fChain->SetBranchAddress("Muon.SumPtCharged", Muon_SumPtCharged, &b_Muon_SumPtCharged); fChain->SetBranchStatus("Muon.SumPtCharged", 0);
+   fChain->SetBranchAddress("Muon.SumPtNeutral", Muon_SumPtNeutral, &b_Muon_SumPtNeutral); fChain->SetBranchStatus("Muon.SumPtNeutral", 0);
+   fChain->SetBranchAddress("Muon.SumPtChargedPU", Muon_SumPtChargedPU, &b_Muon_SumPtChargedPU); fChain->SetBranchStatus("Muon.SumPtChargedPU", 0);
+   fChain->SetBranchAddress("Muon.SumPt", Muon_SumPt, &b_Muon_SumPt); fChain->SetBranchStatus("Muon.SumPt", 0);
+   fChain->SetBranchAddress("Muon_size", &Muon_size, &b_Muon_size); fChain->SetBranchStatus("Muon_size", 0);
+   fChain->SetBranchAddress("MissingET", &MissingET_, &b_MissingET_); fChain->SetBranchStatus("MissingET", 0);
+   fChain->SetBranchAddress("MissingET.fUniqueID", MissingET_fUniqueID, &b_MissingET_fUniqueID); fChain->SetBranchStatus("MissingET.fUniqueID", 0);
+   fChain->SetBranchAddress("MissingET.fBits", MissingET_fBits, &b_MissingET_fBits); fChain->SetBranchStatus("MissingET.fBits", 0);
    fChain->SetBranchAddress("MissingET.MET", MissingET_MET, &b_MissingET_MET);
    fChain->SetBranchAddress("MissingET.Eta", MissingET_Eta, &b_MissingET_Eta);
    fChain->SetBranchAddress("MissingET.Phi", MissingET_Phi, &b_MissingET_Phi);
-   fChain->SetBranchAddress("MissingET_size", &MissingET_size, &b_MissingET_size);
-   fChain->SetBranchAddress("ScalarHT", &ScalarHT_, &b_ScalarHT_);
-   fChain->SetBranchAddress("ScalarHT.fUniqueID", ScalarHT_fUniqueID, &b_ScalarHT_fUniqueID);
-   fChain->SetBranchAddress("ScalarHT.fBits", ScalarHT_fBits, &b_ScalarHT_fBits);
-   fChain->SetBranchAddress("ScalarHT.HT", ScalarHT_HT, &b_ScalarHT_HT);
-   fChain->SetBranchAddress("ScalarHT_size", &ScalarHT_size, &b_ScalarHT_size);
+   fChain->SetBranchAddress("MissingET_size", &MissingET_size, &b_MissingET_size); fChain->SetBranchStatus("MissingET_size", 0);
+   fChain->SetBranchAddress("ScalarHT", &ScalarHT_, &b_ScalarHT_); fChain->SetBranchStatus("ScalarHT", 0);
+   fChain->SetBranchAddress("ScalarHT.fUniqueID", ScalarHT_fUniqueID, &b_ScalarHT_fUniqueID); fChain->SetBranchStatus("ScalarHT.fUniqueID", 0);
+   fChain->SetBranchAddress("ScalarHT.fBits", ScalarHT_fBits, &b_ScalarHT_fBits); fChain->SetBranchStatus("ScalarHT.fBits", 0);
+   fChain->SetBranchAddress("ScalarHT.HT", ScalarHT_HT, &b_ScalarHT_HT); fChain->SetBranchStatus("ScalarHT.HT", 0);
+   fChain->SetBranchAddress("ScalarHT_size", &ScalarHT_size, &b_ScalarHT_size); fChain->SetBranchStatus("ScalarHT_size", 0);
    Notify();
 }
 
@@ -680,3 +624,4 @@ Int_t Delphes::Cut(Long64_t entry)
    return 1;
 }
 #endif // #ifdef Delphes_cxx
+

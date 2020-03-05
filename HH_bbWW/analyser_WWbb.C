@@ -4,7 +4,7 @@
 // export PATH=/cvmfs/sft.cern.ch/lcg/releases/ROOT/6.08.06-b32f2/x86_64-slc6-gcc62-opt/bin:$PATH
 
 #include "Delphes.C"
-#include "LHEF.h"
+#include "LHEReader.C"
 
 using namespace LHEF;
 
@@ -62,16 +62,26 @@ void analyser_WWbb(
 	string data = "/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/SM/tag_2_delphes_events.root",
 	string events = "/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/SM/unweighted_events_2.lhe",
 	int JES = 0,
-	int JER = 0,
-	bool lhe_format = true
+	int JER = 0
 ) {
-	lhe_format = data.find("SM") == std::string::npos;
+	bool lhe_format = data.find("SM") == std::string::npos;
+  lhe_format = false;
 
 	TFile file(data.c_str());
 	TTree * tree = (TTree*) file.Get("Delphes");
 	Delphes * reader = new Delphes (tree);
 
-	Reader r(events);
+  LHEReader reader_lhe;
+  if( lhe_format ) {
+      reader_lhe.weight_open_pattern = "wgt id=\"";
+      reader_lhe.weight_exit_pattern = "</wgt>";
+      reader_lhe.weight_middle_pattern = "\">";
+  }
+  reader_lhe.Init( events.c_str() );
+
+  vector<int> pdf_indexes;
+  if(lhe_format)   for(int i = 9 ; i < 40 ; i++) pdf_indexes.push_back( i );
+  else             for(int i = 45; i < 145; i++) pdf_indexes.push_back( i );
 
 	std::vector<unsigned> pdf_indices;
   	if(lhe_format)
@@ -98,59 +108,146 @@ void analyser_WWbb(
 	selections.Fill("PDF up", 0);
 	selections.Fill("PDF down", 0);
 
-  	Long64_t entries = tree->GetEntries();
+  Long64_t entries = tree->GetEntries();
 	vector<double> higgs;
 	for(ULong64_t entry = 0; entry < entries; ++entry) {
-		r.readEvent();
-
-		double weight;
-		if(lhe_format)
-			weight = r.hepeup.weight(0);
-		else
-			weight = r.hepeup.weight(44);
-
 		if(entry % 1000 == 0)
 			cerr << entry << '/' << entries << endl;
 
-		selections.Fill("Total", 1);
-		selections.Fill("Total (weighted)", weight);
 		reader->GetEntry(entry);
 
-		if(reader->Muon_ == 0 and reader->Electron_ == 0) continue;
-		selections.Fill("At least electron or muon", 1);
+    reader_lhe.ReadEvent();
+    LHEEvent * lhe_info = & reader_lhe.event;
 
-		double highest_pt = 27;
-		ULong64_t highest_lepton = 0;
+		double weight;
+    if(lhe_format) weight = lhe_info->weights_v[0];
+    else           weight = lhe_info->weights_v[44];
+
+
+		selections.Fill("Total", 1);
+		selections.Fill("Total (weighted)", weight);
+
+    // OBJECT SELECTIONS ============================================ ============================================
+    vector<int> selected_muons_raw;
 		for(ULong64_t i = 0; i < reader->Muon_; ++i) {
-			if(reader->Muon_PT[i] < highest_pt) continue;
+			if(reader->Muon_PT[i] < 27) continue;
 			double eta = fabs(reader->Muon_Eta[i]);
 			if(eta > 2.5) continue;
 			if(reader->Muon_IsolationVar[i] > 0.06) continue;
-			highest_pt = reader->Muon_PT[i];
-			highest_lepton = i;
+      selected_muons_raw.push_back( i );
 		}
+
+    vector<int> selected_electrons_raw;
 		for(ULong64_t i = 0; i < reader->Electron_; ++i) {
-			if(reader->Electron_PT[i] < highest_pt) continue;
+			if(reader->Electron_PT[i] < 27) continue;
 			double eta = fabs(reader->Electron_Eta[i]);
 			if(eta > 2.47 or (
 				eta > 1.37 and
 				eta < 1.52
 			)) continue;
 			if(reader->Electron_IsolationVar[i] > 0.06) continue;
-			highest_pt = reader->Electron_PT[i];
-			highest_lepton = ~i;
+      selected_electrons_raw.push_back( i );
 		}
-		if(highest_pt <= 27) continue;
-		selections.Fill("Maximum lepton p_t > 27 GeV", 1);
 
-		vector<ULong64_t> b_tags;
-		vector<ULong64_t> light;
+		vector<ULong64_t> jets_raw;
 		for(ULong64_t i = 0; i < reader->Jet_; ++i) {
 			if(reader->Jet_PT[i] < 20) continue;
 			if(fabs(reader->Jet_Eta[i]) > 2.5) continue;
+      jets_raw.push_back(i);
+		}
+
+    // remove overlapping objects ============================================ ============================================
+
+    // step 1. remove jets overlapping with electrons
+		vector<ULong64_t> jets_1;
+    for(auto i : jets_raw){
+      bool pass = true;
+      auto jet_tlv = make_jet(reader, i, JES, JER);
+      for(auto j : selected_electrons_raw){
+        auto el_tlv = make_lepton(reader, ~j);
+        if( jet_tlv.DeltaR( el_tlv ) > 0.2 ) continue;
+        pass = false;
+        break;
+      }
+      if( pass ) jets_1.push_back( i );
+    }
+
+    // step 2. remove jets overlapping with muons
+		vector<ULong64_t> jets_2;
+    for(auto i : jets_1){
+      bool pass = true;
+      auto jet_tlv = make_jet(reader, i, JES, JER);
+      for(auto j : selected_muons_raw){
+        auto mu_tlv = make_lepton(reader, j);
+        if( jet_tlv.DeltaR( mu_tlv ) > 0.2 ) continue;
+        if( jet_tlv.Pt() > mu_tlv.Pt() * 0.5 ) continue;
+        pass = false;
+        break;
+      }
+      if( pass ) jets_2.push_back( i );
+    }
+    // cout << "Jets selection: " << jets_raw.size() << " -> " << jets_1.size() << " -> " << jets_2.size() << endl;
+    if( jets_raw.size() != jets_2.size() ) cout << "!" << endl;
+
+    // step 3. remove electrons overlapping with selected jets
+    vector<int> selected_electrons;
+    for(auto j : selected_electrons_raw){
+      auto el_tlv = make_lepton(reader, ~j);
+      bool pass = true;
+      for(auto i : jets_raw){
+        auto jet_tlv = make_jet(reader, i, JES, JER);
+        if( jet_tlv.DeltaR( el_tlv ) > TMath::Min(0.4, 0.04 + 10. / el_tlv.Pt()) ) continue;
+        pass = false;
+        break;
+      }
+      if( pass ) selected_electrons.push_back( j );
+    }
+    if( selected_electrons.size() != selected_electrons_raw.size() ) cout << "!!" << endl;
+
+    // step 4. remove muons overlapping with selected jets
+    vector<int> selected_muons;
+    for(auto j : selected_muons_raw){
+      auto mu_tlv = make_lepton(reader, j);
+      bool pass = true;
+      for(auto i : jets_raw){
+        auto jet_tlv = make_jet(reader, i, JES, JER);
+        if( jet_tlv.DeltaR( mu_tlv ) > TMath::Min(0.4, 0.04 + 10. / mu_tlv.Pt()) ) continue;
+        pass = false;
+        break;
+      }
+      if( pass ) selected_muons.push_back( j );
+    }
+    if(  selected_muons.size() !=  selected_muons_raw.size() ) cout << "!!!" << endl;
+    
+    // divide selected jets based on b-tagging
+		vector<ULong64_t> b_tags;
+		vector<ULong64_t> light;
+    for(auto i : jets_2){
 			if(not reader->Jet_BTag[i]) light.push_back(i);
 			else b_tags.push_back(i);
-		}
+    }
+
+    // EVENT SELECTIONS ============================================ ============================================
+		if(selected_muons.size() == 0 and selected_electrons.size() == 0) continue;
+		selections.Fill("At least electron or muon", 1);
+
+    double highest_pt = 0;
+		ULong64_t highest_lepton = 0;
+
+    for(auto i : selected_electrons){
+      if( reader->Electron_PT[i] < highest_pt ) continue;
+      highest_pt = reader->Electron_PT[i];
+      highest_lepton = ~i;
+    }
+
+    for(auto i : selected_muons){
+      if( reader->Muon_PT[i] < highest_pt ) continue;
+      highest_pt = reader->Muon_PT[i];
+      highest_lepton = i;
+    }
+
+		if(highest_pt <= 27) continue;
+		selections.Fill("Maximum lepton p_t > 27 GeV", 1);
 
 		if(b_tags.size() != 2) continue;
 		selections.Fill("Exactly two b tags", 1);
@@ -181,7 +278,6 @@ void analyser_WWbb(
 			light.resize(2);
 		}
 
-		double m_h = 125;
 		TLorentzVector P_w = make_jet(reader, light[0], JES, JER) + make_jet(reader, light[1], JES, JER);
 		TLorentzVector P_l = make_lepton(reader, highest_lepton);
 		
@@ -190,6 +286,7 @@ void analyser_WWbb(
 
 		P_n.SetPtEtaPhiM(reader->MissingET_MET[0], 0, reader->MissingET_Phi[0], 0.001);
 
+		double m_h = 125;
 		double C = (m_h - P_wl.M()) * (m_h + P_wl.M()) * 0.5 + P_wl.Px() * P_n.Px() + P_wl.Py() * P_n.Py();
 		double a = P_wl.E() * P_wl.E() - P_wl.Pz() * P_wl.Pz();
 		double b = -2 * C * P_wl.Pz();
@@ -236,14 +333,35 @@ void analyser_WWbb(
 		selections.Fill("Non-resonant criteria", 1);
 		selections.Fill("Non-resonant criteria (weighted)", weight);
 
-		GetPDFError(pdf_err, r.hepeup, pdf_indices);
+      double weight_pdf_up, weight_pdf_down;
+      lhe_info->GetPDFErrors(weight_pdf_up, weight_pdf_down, weight, pdf_indexes );
 
-		selections.Fill("PDF up", weight + pdf_err);
-		selections.Fill("PDF down", weight - pdf_err);
+      selections.Fill("Pdf_Up", weight_pdf_up );
+      selections.Fill("Pdf_Down", weight_pdf_down );
 		
-		for(unsigned i: used_weights) {
-			selections.Fill(r.heprup.weightinfo[i].name.c_str(), r.hepeup.weight(i));
-		}
+      double weights_muR_05_muF_05, weights_muR_05_muF_10, weights_muR_10_muF_05, weights_muR_10_muF_20, weights_muR_20_muF_10, weights_muR_20_muF_20;
+      if(lhe_format){
+        weights_muR_05_muF_05 = lhe_info->weights_v[8] ;
+        weights_muR_05_muF_10 = lhe_info->weights_v[6] ;
+        weights_muR_10_muF_05 = lhe_info->weights_v[2] ;
+        weights_muR_10_muF_20 = lhe_info->weights_v[1] ;
+        weights_muR_20_muF_10 = lhe_info->weights_v[3] ;
+        weights_muR_20_muF_20 = lhe_info->weights_v[4] ;
+      } else { 
+        weights_muR_05_muF_05 = lhe_info->weights_v[0] ;
+        weights_muR_05_muF_10 = lhe_info->weights_v[5] ;
+        weights_muR_10_muF_05 = lhe_info->weights_v[15] ;
+        weights_muR_10_muF_20 = lhe_info->weights_v[24] ;
+        weights_muR_20_muF_10 = lhe_info->weights_v[34] ;
+        weights_muR_20_muF_20 = lhe_info->weights_v[39] ;
+      }
+
+      selections.Fill( "muR_05_muF_05", weights_muR_05_muF_05 );
+      selections.Fill( "muR_05_muF_10", weights_muR_05_muF_10 );
+      selections.Fill( "muR_10_muF_05", weights_muR_10_muF_05 );
+      selections.Fill( "muR_10_muF_20", weights_muR_10_muF_20 );
+      selections.Fill( "muR_20_muF_10", weights_muR_20_muF_10 );
+      selections.Fill( "muR_20_muF_20", weights_muR_20_muF_20 );
 	}
 
 	double total = selections.GetBinContent(1);
@@ -264,3 +382,90 @@ void analyser_WWbb(
 		cout << label << " => " << passed << ' ' << passed / total_weighted << endl;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+### delphes_1.root ====================================================>
+Total => 500000 1
+At least electron or muon => 65155 0.13031
+Maximum lepton p_t > 27 GeV => 37389 0.074778
+Exactly two b tags => 9187 0.018374
+At least two light jets => 5515 0.01103
+Correct Higgs mass => 2107 0.004214
+System is reconstructible => 1360 0.00272
+Non-resonant criteria => 20 4e-05
+Total (weighted) => 89.3601 0.00017872
+Non-resonant criteria (weighted) => 0.00357476 4.0004e-05
+PDF up => 0.00373016 4.1743e-05
+PDF down => 0.00341936 3.8265e-05
+
+### tag_1_delphes_events.root ====================================================>
+Total => 500000 1
+At least electron or muon => 64465 0.12893
+Maximum lepton p_t > 27 GeV => 38096 0.076192
+Exactly two b tags => 9570 0.01914
+At least two light jets => 5994 0.011988
+Correct Higgs mass => 2268 0.004536
+System is reconstructible => 1497 0.002994
+Non-resonant criteria => 21 4.2e-05
+Total (weighted) => 6774.9 0.0135498
+Non-resonant criteria (weighted) => 0.284571 4.20037e-05
+PDF up => 0.33581 4.95668e-05
+PDF down => 0.233332 3.44406e-05
+
+At least electron or muon => 38064 0.076128
+Maximum lepton p_t > 27 GeV => 38064 0.076128
+Exactly two b tags => 9558 0.019116
+At least two light jets => 5983 0.011966
+Correct Higgs mass => 2264 0.004528
+System is reconstructible => 1494 0.002988
+Non-resonant criteria => 21 4.2e-05
+Total (weighted) => 6774.9 0.0135498
+Non-resonant criteria (weighted) => 0.284571 4.20037e-05
+PDF up => 0 0
+PDF down => 0 0
+Pdf_Up => 0.291051 4.29602e-05
+Pdf_Down => 0.278091 4.10472e-05
+muR_05_muF_05 => 0.367849 5.42958e-05
+muR_05_muF_10 => 0.335301 4.94917e-05
+muR_10_muF_05 => 0.312202 4.60821e-05
+muR_10_muF_20 => 0.260377 3.84326e-05
+muR_20_muF_10 => 0.244636 3.61092e-05
+muR_20_muF_20 => 0.223834 3.30387e-05
+
+At least electron or muon => 38064 0.076128
+Maximum lepton p_t > 27 GeV => 38064 0.076128
+Exactly two b tags => 9558 0.019116
+At least two light jets => 5983 0.011966
+Correct Higgs mass => 2264 0.004528
+System is reconstructible => 0 0
+Non-resonant criteria => 15 3e-05
+Total (weighted) => 6774.9 0.0135498
+Non-resonant criteria (weighted) => 0.203265 3.00026e-05
+PDF up => 0 0
+PDF down => 0 0
+Pdf_Up => 0.208047 3.07085e-05
+Pdf_Down => 0.198483 2.92967e-05
+muR_05_muF_05 => 0.262737 3.8781e-05
+muR_05_muF_10 => 0.239534 3.53561e-05
+muR_10_muF_05 => 0.22296 3.29096e-05
+muR_10_muF_20 => 0.18601 2.74557e-05
+muR_20_muF_10 => 0.174719 2.57892e-05
+muR_20_muF_20 => 0.159885 2.35996e-05
+
+*/
+
+
+
+
+
