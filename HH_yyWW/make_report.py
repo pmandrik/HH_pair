@@ -21,9 +21,9 @@ for i in xrange(1, 13):
 eff, err, n = get_eff( "cms_results_v0/log_SM.log" )
 effs += [ ["SM", eff * corr_factor, eff * err * corr_factor, n] ]
 
-print "ATLAS Efficiency (Geant4) = 8.5%"
-print "CMS Efficiency (Delphes) +- error due to finit MC samples, number of selected events from 500k sample: "
+print "ATLAS Efficiency (Geant4) = 8.5%  "
+print "CMS Efficiency (Delphes) +- error due to finit MC samples, number of selected events from 500k sample:  "
 for (name, eff, err, n) in effs:
-  print name, "%.2f +- %.2f " % (eff*100, err*100), n
+  print name, "%.2f +- %.2f " % (eff*100, err*100), n, "  "
 
 
