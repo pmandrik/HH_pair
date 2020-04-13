@@ -4,7 +4,7 @@
 // export PATH=/cvmfs/sft.cern.ch/lcg/releases/ROOT/6.08.06-b32f2/x86_64-slc6-gcc62-opt/bin:$PATH
 
 #include "Delphes.C"
-#include "LHEReader.C"
+#include "../LHEReader.C"
 
 using namespace LHEF;
 
@@ -65,7 +65,7 @@ void analyser_WWbb(
 	int JER = 0
 ) {
 	bool lhe_format = data.find("SM") == std::string::npos;
-  lhe_format = false;
+  // lhe_format = false;
 
 	TFile file(data.c_str());
 	TTree * tree = (TTree*) file.Get("Delphes");
@@ -96,23 +96,22 @@ void analyser_WWbb(
 
 	TH1D selections ("selections", "selections", 100, 0, 100);
 	selections.Fill("Total", 0);
+	selections.Fill("Total (weighted)", 0);
 	selections.Fill("At least electron or muon", 0);
 	selections.Fill("Maximum lepton p_t > 27 GeV", 0);
 	selections.Fill("Exactly two b tags", 0);
 	selections.Fill("At least two light jets", 0);
 	selections.Fill("Correct Higgs mass", 0);
 	selections.Fill("System is reconstructible", 0);
-	selections.Fill("Non-resonant criteria", 0);
-	selections.Fill("Total (weighted)", 0);
-	selections.Fill("Non-resonant criteria (weighted)", 0);
-	selections.Fill("PDF up", 0);
-	selections.Fill("PDF down", 0);
+  selections.Fill("Selected", 1);
+  selections.Fill("Selected (weighted)", weight);
 
   Long64_t entries = tree->GetEntries();
 	vector<double> higgs;
 	for(ULong64_t entry = 0; entry < entries; ++entry) {
-		if(entry % 1000 == 0)
-			cerr << entry << '/' << entries << endl;
+		// if(entry % 1000 == 0)
+		// cerr << entry << '/' << entries << endl;
+    // if(entry > 100000) break; 
 
 		reader->GetEntry(entry);
 
@@ -157,7 +156,6 @@ void analyser_WWbb(
 		}
 
     // remove overlapping objects ============================================ ============================================
-
     // step 1. remove jets overlapping with electrons
 		vector<ULong64_t> jets_1;
     for(auto i : jets_raw){
@@ -186,8 +184,6 @@ void analyser_WWbb(
       }
       if( pass ) jets_2.push_back( i );
     }
-    // cout << "Jets selection: " << jets_raw.size() << " -> " << jets_1.size() << " -> " << jets_2.size() << endl;
-    if( jets_raw.size() != jets_2.size() ) cout << "!" << endl;
 
     // step 3. remove electrons overlapping with selected jets
     vector<int> selected_electrons;
@@ -202,7 +198,6 @@ void analyser_WWbb(
       }
       if( pass ) selected_electrons.push_back( j );
     }
-    if( selected_electrons.size() != selected_electrons_raw.size() ) cout << "!!" << endl;
 
     // step 4. remove muons overlapping with selected jets
     vector<int> selected_muons;
@@ -217,7 +212,6 @@ void analyser_WWbb(
       }
       if( pass ) selected_muons.push_back( j );
     }
-    if(  selected_muons.size() !=  selected_muons_raw.size() ) cout << "!!!" << endl;
     
     // divide selected jets based on b-tagging
 		vector<ULong64_t> b_tags;
@@ -292,6 +286,9 @@ void analyser_WWbb(
 		double b = -2 * C * P_wl.Pz();
 		double c = P_wl.E() * P_wl.E() * P_n.Pt() * P_n.Pt() - C * C;
 
+    // cout << "C " << C << ", a " << a << ", b " << b << ", c " << c << endl;
+    // cout << "C*C " << C*C << ", a " << a << ", b " << b << ", c+C*C " << P_wl.E() * P_wl.E() * P_n.Pt() * P_n.Pt() << endl;
+
 		if(a == 0) continue;
 		b /= a;
 		c /= a;
@@ -318,7 +315,7 @@ void analyser_WWbb(
 			else P_n = p2;
 		}
 		else P_n.SetXYZM(P_n.Px(), P_n.Py(), x, P_n.M());
-		
+
 		selections.Fill("System is reconstructible", 1);
 
 		TLorentzVector P_H1 = P_n + P_wl;
@@ -330,8 +327,8 @@ void analyser_WWbb(
 		 || P_H1.Pt() <= 250
 		) continue;
 		
-		selections.Fill("Non-resonant criteria", 1);
-		selections.Fill("Non-resonant criteria (weighted)", weight);
+		selections.Fill("Selected", 1);
+		selections.Fill("Selected (weighted)", weight);
 
       double weight_pdf_up, weight_pdf_down;
       lhe_info->GetPDFErrors(weight_pdf_up, weight_pdf_down, weight, pdf_indexes );
@@ -366,105 +363,15 @@ void analyser_WWbb(
 
 	double total = selections.GetBinContent(1);
 	double total_weighted = selections.GetBinContent(9);
-	int i = 1;
-	for(; i < 10; ++i) {
+
+	for(int i = 1; i < 100; ++i) {
 		double passed = selections.GetBinContent(i);
 		string label = selections.GetXaxis()->GetBinLabel(i);
 
 		if(label.size() < 1) break;
-		cout << label << " => " << passed << ' ' << passed / total << endl;
-	}
-	for(; i < 100; ++i) {
-		double passed = selections.GetBinContent(i);
-		string label = selections.GetXaxis()->GetBinLabel(i);
-
-		if(label.size() < 1) break;
-		cout << label << " => " << passed << ' ' << passed / total_weighted << endl;
+		cout << "dic[\"" + label + "\"]" << "=[" << passed << ", " << passed / total_weighted << "]" << endl;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-### delphes_1.root ====================================================>
-Total => 500000 1
-At least electron or muon => 65155 0.13031
-Maximum lepton p_t > 27 GeV => 37389 0.074778
-Exactly two b tags => 9187 0.018374
-At least two light jets => 5515 0.01103
-Correct Higgs mass => 2107 0.004214
-System is reconstructible => 1360 0.00272
-Non-resonant criteria => 20 4e-05
-Total (weighted) => 89.3601 0.00017872
-Non-resonant criteria (weighted) => 0.00357476 4.0004e-05
-PDF up => 0.00373016 4.1743e-05
-PDF down => 0.00341936 3.8265e-05
-
-### tag_1_delphes_events.root ====================================================>
-Total => 500000 1
-At least electron or muon => 64465 0.12893
-Maximum lepton p_t > 27 GeV => 38096 0.076192
-Exactly two b tags => 9570 0.01914
-At least two light jets => 5994 0.011988
-Correct Higgs mass => 2268 0.004536
-System is reconstructible => 1497 0.002994
-Non-resonant criteria => 21 4.2e-05
-Total (weighted) => 6774.9 0.0135498
-Non-resonant criteria (weighted) => 0.284571 4.20037e-05
-PDF up => 0.33581 4.95668e-05
-PDF down => 0.233332 3.44406e-05
-
-At least electron or muon => 38064 0.076128
-Maximum lepton p_t > 27 GeV => 38064 0.076128
-Exactly two b tags => 9558 0.019116
-At least two light jets => 5983 0.011966
-Correct Higgs mass => 2264 0.004528
-System is reconstructible => 1494 0.002988
-Non-resonant criteria => 21 4.2e-05
-Total (weighted) => 6774.9 0.0135498
-Non-resonant criteria (weighted) => 0.284571 4.20037e-05
-PDF up => 0 0
-PDF down => 0 0
-Pdf_Up => 0.291051 4.29602e-05
-Pdf_Down => 0.278091 4.10472e-05
-muR_05_muF_05 => 0.367849 5.42958e-05
-muR_05_muF_10 => 0.335301 4.94917e-05
-muR_10_muF_05 => 0.312202 4.60821e-05
-muR_10_muF_20 => 0.260377 3.84326e-05
-muR_20_muF_10 => 0.244636 3.61092e-05
-muR_20_muF_20 => 0.223834 3.30387e-05
-
-At least electron or muon => 38064 0.076128
-Maximum lepton p_t > 27 GeV => 38064 0.076128
-Exactly two b tags => 9558 0.019116
-At least two light jets => 5983 0.011966
-Correct Higgs mass => 2264 0.004528
-System is reconstructible => 0 0
-Non-resonant criteria => 15 3e-05
-Total (weighted) => 6774.9 0.0135498
-Non-resonant criteria (weighted) => 0.203265 3.00026e-05
-PDF up => 0 0
-PDF down => 0 0
-Pdf_Up => 0.208047 3.07085e-05
-Pdf_Down => 0.198483 2.92967e-05
-muR_05_muF_05 => 0.262737 3.8781e-05
-muR_05_muF_10 => 0.239534 3.53561e-05
-muR_10_muF_05 => 0.22296 3.29096e-05
-muR_10_muF_20 => 0.18601 2.74557e-05
-muR_20_muF_10 => 0.174719 2.57892e-05
-muR_20_muF_20 => 0.159885 2.35996e-05
-
-*/
-
 
 
 
