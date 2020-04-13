@@ -25,10 +25,10 @@ print "ATLAS Efficiency (Geant4) = 8.5%  "
 print "CMS Efficiency (Delphes) +- uncertantie due to finit MC samples, number of selected events from 500k sample (non-filtered):"
 for (name, eff, err, n) in effs:
   print name, "%.2f +- %.2f " % (eff*100, err*100), n, "  "
-print "Number of event to generate (HH>WWgg, WW>elnujj) in order to reach sys uncertantie due to finit MC samples at the level of 0.5*lumi unc & expected number of selected events :"
+print "Number of event to generate (HH>WWgg, WW>elnujj) in order to reach sys uncertantie due to finit MC samples at the level of 0.5*lumi unc & expected number of selected events :  "
 for (name, eff, err, n) in effs:
   unc_error = 0.5 * 3.2 / 100.
-  print name, int(1. / pow(unc_error, 2) / eff), int(1. / pow(unc_error, 2))
+  print name, int(1. / pow(unc_error, 2) / eff), int(1. / pow(unc_error, 2)), "  "
 
 
 
