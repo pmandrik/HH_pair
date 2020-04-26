@@ -40,8 +40,39 @@ TLorentzVector make_lepton(Delphes* reader, Long64_t index, bool electron) {
     return vec;
 }
 
+struct selected_lepton {
+    selected_lepton (Delphes *reader, ULong64_t index1, double pt1, Long64_t charge1, bool electron) {
+        index = index1;
+        pt = pt1;
+        charge = charge1;
+        is_electron = electron;
+        vec = make_lepton(reader, index1, electron);
+    }
+    ULong64_t index;
+    double pt;
+    Long64_t charge = 0;
+    bool is_electron; // true - electron, false - muon
+    TLorentzVector vec;
 
-void analyser_WWWW(
+    selected_lepton operator= (const selected_lepton& lepton) {
+        index = lepton.index;
+        pt = lepton.pt;
+        charge = lepton.charge;
+        is_electron = lepton.is_electron;
+        vec = lepton.vec;
+    }
+};
+
+bool operator< (const selected_lepton& lhs, const selected_lepton& rhs) {
+    return lhs.pt < rhs.pt;
+}
+
+bool operator!= (const selected_lepton& lhs, const selected_lepton& rhs) {
+    return lhs.vec != rhs.vec;
+}
+
+
+void analyser_WWWW (
         string delphes_file = ""/*"/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/tag_1_delphes_events.root" */,
         string lhe_file = ""/*"/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/unweighted_events.lhe"*/,
         bool lhe_format = false, string mode = "" ) {
@@ -110,302 +141,404 @@ void analyser_WWWW(
         for (ULong64_t i = 0; i < reader->Muon_; ++i) {
             if (reader->Muon_PT[i] <= 10) continue;
             if (TMath::Abs(reader->Muon_Eta[i]) > 2.5) continue;
-            if(reader->Muon_IsolationVar[i] > 0.06) continue;
-            // Add about 4 lepton channel and Delta_R???
+            if(reader->Muon_IsolationVar[i] > 0.15) continue;
             muons_indexes.push_back(i);
-            selections->Fill("Selected muons", 1);
+            selections->Fill("Pre-selected muons", 1);
         }
 
         for (ULong64_t i = 0; i < reader->Electron_; ++i) {
             double eta = TMath::Abs(reader->Electron_Eta[i]);
-            if (reader->Electron_PT[i] <= 10) continue;  // not sure, E_t???
+            if (reader->Electron_PT[i] <= 10) continue;
             if (eta > 2.47 or (eta > 1.37 and eta < 1.52)) continue;
-            if(reader->Electron_IsolationVar[i] > 0.06) continue;
-            // Add about 4 lepton channel and Delta_R???
+            if(reader->Electron_IsolationVar[i] > 0.15) continue;
             electrons_indexes.push_back(i);
-            selections->Fill("Selected electrons", 1);
+            selections->Fill("Pre-selected electrons", 1);
         }
 
-        selections->Fill("Minimum lepton p_t > 10 GeV", 1); // Maybe not needed
+        selections->Fill("Minimum lepton p_t > 10 GeV", 1);
 
         vector <ULong64_t> jets_indexes;
         bool b_tag = false;
         for (ULong64_t i = 0; i < reader->Jet_; ++i) {
             if (reader->Jet_PT[i] < 25) continue;
             if (TMath::Abs(reader->Jet_Eta[i]) > 2.5) continue;
-            for (ULong64_t i = 0; i < reader->Jet_; ++i)
+            jets_indexes.push_back(i);
+            selections->Fill("Pre-selected jets", 1);
+        }
+
+        // Remove jets which too close to leptons
+        vector<ULong64_t> selected_jets;
+        for (auto i : jets_indexes) {
+            bool pass = true;
+            TLorentzVector jet_vector = make_jet(reader, i);
+            for (auto j : electrons_indexes) {
+                TLorentzVector electron_vector = make_lepton(reader, j, true);
+                if (jet_vector.DeltaR(electron_vector) > 0.2) continue;
+                pass = false;
+                break;
+            }
+        }
+        jets_indexes = selected_jets;
+        selected_jets.clear();
+        selections->Fill("Selected jets", jets_indexes.size());
+
+
+        // Remove electrons which too close to jets
+        vector<ULong64_t> selected_electrons;
+        for(auto i : electrons_indexes) {
+            TLorentzVector electron_vector = make_lepton(reader, i, true);
+            bool pass = true;
+            for(auto j : jets_indexes) {
+                TLorentzVector jet_vector = make_jet(reader, j);
+                if(jet_vector.DeltaR(electron_vector) > 0.4) continue;
+                pass = false;
+                break;
+            }
+            if(pass) selected_electrons.push_back(i);
+        }
+        electrons_indexes = selected_electrons;
+        selected_electrons.clear();
+
+
+        // Remove muons which too close to jets
+        vector<ULong64_t> selected_muons;
+        for (auto j : muons_indexes) {
+            TLorentzVector muon_vector = make_lepton(reader, j, false);
+            for(auto i : jets_indexes) {
+                TLorentzVector jet_vector = make_jet(reader, j);
+                if (jet_vector.DeltaR(muon_vector) > TMath::Min(0.4, 0.04 + 10. / muon_vector.Pt()) continue;
+                pass = false;
+                break;
+            }
+            if(pass) selected_muons.push_back(i);
+        }
+        muons_indexes = selected_muons;
+        selected_muons.clear();
+
+
+        if (electrons_indexes.size() + muons_indexes.size() < 4) {
+            for (int i = 0; i < electrons_indexes.size(); i++) {
+                if (reader->Electron_IsolationVar[electrons_indexes[i]] > 0.06) {
+                    electrons_indexes.erase(electrons_indexes.begin() + i);
+                    selections->Fill("Removed electrons cause big isolationVar", 1);
+                }
+            }
+            for (int i = 0; i < muons_indexes.size(); i++) {
+                if (reader->Muon_IsolationVar[muons_indexes[i]] > 0.06) {
+                    muons_indexes.erase(muons_indexes.begin() + i);
+                    selections->Fill("Removed muons cause big isolationVar", 1);
+                }
+            }
+        }
+
+        selections->Fill("Selected electrons", electrons_indexes.size());
+        selections->Fill("Selected muons", muons_indexes.size());
+
+        vector<selected_lepton> leptons;
+        for (auto i : elecrons_indexes)  {
+            double pt = reader->Electron_PT[i];
+            Long64_t charge = reader->Electron_Charge[i];
+            leptons.push_back(selected_lepton(reader, i, pt, charge, true));
+        }
+        for (auto i : muons_indexes)  {
+            double pt = reader->Muon_PT[i];
+            Long64_t charge = reader->Muon_Charge[i];
+            leptons.push_back(selected_lepton(reader, i, pt, charge, false));
+        }
+        sort(leptons.begin(), leptons.end()); // To know leading, subleading lepton, operator< has been overridden
+
+
+        // EVENTS SELECTION =========================================================
+
+
+        ULong64_t number_leptons = leptons.size();
+        if (number_leptons < 2 and number_leptons > 4) continue;
+
+        selections->Fill("At least 2 electrons or muons", 1);
+        selections->Fill("Events with " + to_string(number_leptons) + "electrons or muons", 1);
+
+        bool b_tag = false;
+        for (auto i : jets_indexes) {
             if (reader->Jet_BTag[i]) {
                 b_tag = true;
                 break;
             }
-            jets_indexes.push_back(i);
-            selections->Fill("Selected jets", 1);
         }
-
-        // пройтись по электронам и мюонам, отобрать те, у которых дельта R больше 0.04 + таблица стр. 12
-        // EVENTS SELECTION =========================================================
-
-        ULong64_t number_leptons = electrons_indexes.size() + muons_indexes.size()
-        if (number_leptons < 2 and number_leptons > 4) continue;
-        selections->Fill("At least 2 electrons or muons", 1);
-        selections->Fill("Events with " + to_string(number_leptons) + "electrons or muons", 1); // Maybe not needed
-
         if (b_tag) continue;
-        selections->Fill("No b tags", 1); // Maybe not needed
+        selections->Fill("Events with no b tags", 1);
 
+
+        vector<vector<selected_lepton>>> sfos; // Same-flavor opposite sign (SFOS)
         Long64_t sum_leptons_charge = 0, min_pt = 1000, max_pt = 0;
-        for (ULong64_t i = 0; i < electrons_indexes.size(); i++) {
-            sum_leptons_charge += reader->Electron_Charge[i];
-            double pt = reader->Electron_PT[electrons_indexes[i]]
-            if (pt < min_pt) min_pt = pt;
-            if (pt > max_pt) max_pt = pt;
+        for (ULong64_t i = 0; i < leptons.size(); i++) {
+            sum_leptons_charge += leptons[i].charge;
+            // Search SFOS
+            for (int j = i + 1; j < leptons.size(); j++) {
+                if (leptons[i].charge != leptons[j].charge && leptons[i].is_electron == leptons[j].is_electron) {
+                    vector<selected_lepton> pair = {leptons[i], leptons[j]};
+                    sfos.push_back(pair);
+                }
+            }
         }
-        for (ULong64_t i = 0; i < muons_indexes.size(); i++) {
-            sum_leptons_charge += reader->Muon_Charge[i];
-            double pt = reader->Electron_PT[electrons_indexes[i]]
-            if (pt < min_pt) min_pt = pt;
-            if (pt > max_pt) max_pt = pt;
-        }
+        int number_sfos = sfos.size();
 
         if (number_leptons == 2) {
+
             if (TMath::Abs(sum_leptons_charge) != 2) continue;
+            selections->Fill("Correct summary charge", 1);
             if (jets_indexes.size() < 3) continue;
-            if (electrons_indexes.size() == 2) {
-                TLorentzVector sum = make_lepton(reader, electrons_indexes[0], true)
-                        + make_lepton(reader, electrons_indexes[1], true);
-                if (TMath::Abs((sum.P - 91.1876) < 10) continue; // ??May be not true????  Comparison with m_Z
+
+            TLorentzVector sum_leptons = leptons[0].vec + leptons[1].vec;
+
+            double nearest_R_sub_leading = 100000000, nearest_R_leading = 100000000;
+            ULong64_t index_nearest_jet_leading; // Compared to leading lepton (leading and sub_leading - about leptons)
+            for (auto i : jets_indexes) {
+                TLorentzVector vec_jet = make_jet(reader, i);
+                double R_sub_leading = vec_jet.DeltaR(leptons[0].vec),
+                        R_leading = vec_jet.DeltaR(leptons[1].vec);
+                if (nearest_R_sub_leading > R_sub_leading)
+                    nearest_R_sub_leading = R_sub_leading;
+                if (nearest_R_leading > R_leading) {
+                    nearest_R_leading = R_leading;
+                    index_nearest_jet_leading = i;
+                }
             }
-            if (min_pt <= 20 or max_pt <= 30) continue;
+
+            double sub_min_R = 1000000;
+            ULong64_t sub_nearest_jet_index;
+            for (auto i : jets_indexes) {
+                TLorentzVector vec_jet = make_jet(reader, i);
+                double R = vec_jet.DeltaR(leptons[1].vec);
+                if (i != index_nearest_jet_leading && R < sub_min_R) {
+                    sub_min_R = R;
+                    sub_nearest_jet_index = i;
+                }
+            }
+            TLorenzVector vec_leading_lepton_jets = leptons[1].vec + make_jet(reader, index_nearest_jet_leading) +
+                                                    make_jet(reader, sub_nearest_jet_index);
+
+            if (leptons[0].is_electron && leptons[1].is_electron) {
+                if (TMath::Abs(sum_leptons.M() - 91.1876) <= 10) continue;  // Comparison with M_Z
+                if (sum_leptons.M() > 270 || sum_leptons.M() < 55) continue;
+                if (nearest_R_leading > 1.15 || nearest_R_leading < 0.2) continue;
+                if (nearest_R_sub_leading > 1.4 || nearest_R_sub_leading < 0.2) continue;
+                if (vec_leading_lepton_jets.M() < 40 || vec_leading_lepton_jets.M() > 285) continue;
+
+            }
+            else if (!leptons[0].is_electron && !leptons[1].is_electron) {
+                if (sum_leptons.M() > 250 || sum_leptons.M() < 60) continue;
+                if (nearest_R_leading > 0.75 || nearest_R_leading < 0.2) continue;
+                if (nearest_R_sub_leading > 1.05 || nearest_R_sub_leading < 0.2) continue;
+                if (vec_leading_lepton_jets.M() < 30 || vec_leading_lepton_jets.M() > 310) continue;
+
+            }
+            else { // If there are one electron and one muon
+                if (sum_leptons.M() > 250 || sum_leptons.M() < 75) continue;
+                if (nearest_R_leading > 0.8 || nearest_R_leading < 0.2) continue;
+                if (nearest_R_sub_leading > 1.15 || nearest_R_sub_leading < 0.2) continue;
+                if (vec_leading_lepton_jets.M() < 35 || vec_leading_lepton_jets.M() > 350) continue;
+
+            }
+
+            if (leptons[0].pt <= 20 or leptons[1].pt <= 30) continue;
+            //selections->Fill("Normal min and max pt", 1)
         }
 
         else if (number_leptons == 3) {
+
             if (TMath::Abs(sum_leptons_charge) != 1) continue;
+            selections->Fill("Correct summary charge", 1);
             if (jets_indexes.size() < 2) continue;
 
-
-            vector<ULong64_t> negative_charge,  positive_charge;
-            vector<bool> is_electron_positive, is_electron_negative;
-            for (ULong64_t i = 0; i < electrons_indexes.size(); i++) {
-                if (reader->Electron_Charge[i] > 0) {
-                    positive_charge.push_back(i);
-                    is_electron_positive.push_back(true);
-                }
-                else {
-                    negative_charge.push_back(i);
-                    is_electron_negative.push_back(true);
-                }
-            }
-
-            for (ULong64_t i = 0; i < muons_indexes.size(); i++) {
-                if (reader->Muon_Charge[i] > 0) {
-                    positive_charge.push_back(i);
-                    is_electron_positive.push_back(false);
-                }
-                else {
-                    negative_charge.push_back(i);
-                    is_electron_negative.push_back(false);
+            selected_lepton l1, l2, l3;
+            double closest_to_Z_mass = 1000000;
+            for (int i = 0; i < 3; i++) {
+                for (int j = i + 1; j < 3; j++) {
+                    if (leptons[i].is_electron == leptons[j].is_electron) {
+                        TLorenzVector sum = leptons[i].vec + leptons[j].vec;
+                        if (TMath::Abs(sum.M() - 91.1876) < TMath::Abs(closest_to_Z_mass - 91.1876))
+                            closest_to_Z_mass = sum.M();
+                    }
+                    if (leptons[i].charge == leptons[j].charge) {
+                        l2 = leptons[i];
+                        l3 = leptons[j];
+                    }
                 }
             }
 
-            TLorentzVector sum;
-            if (negative_charge.size() == 2) {
-                for (ULong64_t i = 0; i < 2, i++) {
-                    if (is_electron_negative[i])
-                        sum += make_lepton(reader, electrons_indexes[negative_charge[i]], true);
-                    else sum += make_lepton(reader, muons_indexes[negative_charge[i]], false);
-                }
-            }
-            else {  // If there are two positive leptons
-                for (ULong64_t i = 0; i < 2, i++) {
-                    if (is_electron_positive[i])
-                        sum += make_lepton(reader, electrons_indexes[positive_charge[i]], true);
-                    else sum += make_lepton(reader, muons_indexes[positive_charge[i]], false);
-                }
-            }
+            if (TMath::Abs(closest_to_Z_mass - 91.1876) < 10) continue; // Conparison with M_Z
 
-            if (TMath::Abs((sum.P - 91.1876) < 10) continue; // ??May be not true????  Comparison with m_Z
-
-            bool too_low_pt = false;
-            for (ULong32_t i = 0; i < 2; i++) {
-                if (negative_charge.size() == 2) {
-                    if (is_electron_negative[i]) double pt = reader->Electron_PT[negative_charge[i]];
-                    else double pt = reader->Muon_PT[negative_charge[i]];
-                }
-                if (positive_charge.size() == 2) {
-                    if (is_electron_negative[i]) double pt = reader->Electron_PT[positive_charge[i]];
-                    else double pt = reader->Muon_PT[positive_charge[i]];
-                }
-                if (pt <= 20) {
-                    too_low_pt = true;
+            for (selected_lepton i : leptons) {
+                if (i != l2 && i != l3) {
+                    l1 = i;
                     break;
                 }
             }
-            if (too_low_pt) continue;
+            if (l2.vec.DeltaR(l1.vec) > l3.vec.DeltaR(l1.vec)) {
+                selected_lepton tmp = l2;
+                l2 = l3;
+                l3 = tmp;
+            }
+            if (l2.pt <= 20 || l3.pt <= 20) continue;
+
+            bool too_low_mass = false;
+            for (vector<selected_lepton> i : sfos) {
+                TLorenzVector sum = i[0].vec + i[1].vec;
+                if (sum.M() < 15) {
+                    too_low_mass = true;
+                    break;
+                }
+            }
+            if (too_low_mass) continue;
+
+            double nearest_R = 100000000, sub_nearest_R = 100000000;
+            ULong64_t index_nearest_jet, index_sub_nearest_jet;
+            for (auto i : jets_indexes) {
+                TLorentzVector vec_jet = make_jet(reader, i);
+                double R = vec_jet.DeltaR(l3);
+                if (R < nearest_R) {
+                    sub_nearest_R = nearest_R;
+                    index_sub_nearest_jet = index_nearest_jet;
+                    nearest_R = R;
+                    index_nearest_jet = i;
+                }
+                else if (R < sub_nearest_R) {
+                    sub_nearest_R = R;
+                    index_sub_nearest_jet = i;
+                }
+            }
+
+            TLorentzVector sum23 = l2 + l3;
+            TLorentzVector sum3_jet = l3 + make_jet(reader, index_nearest_jet);
+            TLorentzVector sum3_two_jets = sum3_jet + make_jet(reader, index_sub_nearest_jet);
+
+            if (number_sfos == 0) {
+                if (l2.DeltaR(l3) < 2.47 || l2.DeltaR(l3) > 5.85) continue;
+                if (sum23.M() < 10 || sum23.M() > 70) continue;
+                if (sum3_two_jets.M() < 50 || sum3_two_jets.M() > 110) continue;
+                if (sum3_jet.M() < 15 || sum3_jet.M() > 50) continue;
+
+            }
+            else { // If number_sfos = 1 or 2
+                if (l2.DeltaR(l3) < 2.16 || l2.DeltaR(l3) > 3.5) continue;
+                if (sum23.M() < 10 || sum23.M() > 70) continue;
+                if (sum3_two_jets.M() < 50 || sum3_two_jets.M() > 115) continue;
+                if (sum3_jet.M() < 15 || sum3_jet.M() > 45) continue;
+
+            }
 
         }
 
         else {  //  FOUR LEPTONS CHANNEL
+
             if (TMath::Abs(sum_leptons_charge) != 0) continue;
+            selections->Fill("Correct summary charge", 1);
             if (jets_indexes.size() < 2) continue;
-            if (max_pt <= 22) continue;
+            if (leptons[3].pt <= 22) continue;
+
+            bool too_low_mass = false
+            for (auto i : sfos) {
+                TLorentzVector sum = i[0].vec + i[1].vec;
+                if (sum.M() <= 4) {
+                    too_low_mass = true;
+                    break;
+                }
+            }
+            if (too_low_mass) continue;
+
+            selected_lepton l0, l1, l2, l3;
+            if (number_sfos == 0) {
+
+                double closest_to_Z_mass = 1000000;
+                for (int i = 0; i < 4; i++) {
+                    for (int j = i + 1; j < 4; j++) {
+                        TLorenzVector sum = leptons[i].vec + leptons[j].vec;
+                        if (leptrons[i].is_electron != leptons[j].is_electron && leptons[i].charge != leptons[j].charge
+                            && TMath::Abs(sum.M() - 91.1876) < TMath::Abs(closest_to_Z_mass - 91.1876)) {
+                            closest_to_Z_mass = sum.M();
+                            if (leptons[i].pt > leptons[j].pt) {
+                                l2 = leptons[i];
+                                l3 = leptons[j];
+                            } else {
+                                l2 = leptons[j];
+                                l3 = leptons[i];
+                            }
+                        }
+                    }
+                }
+
+                if (TMath::Abs(closest_to_Z_mass - 91.1876) <= 5) continue;
+
+                for (int i = 0; i < 4; i++) {
+                    if (leptons[i] != l2 && leptons[i] != l3 && l0.charge == 0) l0 = leptons[i];
+                    else if (leptons[i] != l2 && leptons[i] != l3) l1 = leptons[i];
+                }
+                if (l1.pt > l0.pt) {
+                    auto tmp = l0;
+                    l0 = l1;
+                    l1 = tmp;
+                }
+                TLorentzVector sum = l0 + l1;
+                if (sum.M() <= 10) continue;
+
+                sum += l2 + l3;
+                if (sum.M() < 180) selections->Fill("Summary mass of 4 leptons < 180 GeV", 1);
+                else selections->Fill("Summary mass of 4 leptons > 180 GeV", 1);
+            }
+            else { // If number_sfos = 1 or 2
+
+                double closest_to_Z_mass = 1000000;
+                for (auto i : sfos) {
+                    TLorentzVector sum = i[0].vec + i[1].vec;
+                    if (TMath::Abs(sum.M() - 91.1876) < TMath::Abs(closest_to_Z_mass - 91.1876)) {
+                        closest_to_Z_mass = sum.M();
+                        if (i[0].pt > i[1].pt) {
+                            l2 = i[0];
+                            l3 = i[1];
+                        } else {
+                            l2 = i[1];
+                            l3 = i[0];
+                        }
+                    }
+                }
+
+                for (int i = 0; i < 4; i++) {
+                    if (leptons[i] != l2 && leptons[i] != l3 && l0.charge == 0) l0 = leptons[i];
+                    else if (leptons[i] != l2 && leptons[i] != l3) l1 = leptons[i];
+                }
+                if (l1.pt > l0.pt) {
+                    auto tmp = l0;
+                    l0 = l1;
+                    l1 = tmp;
+                }
+
+                TLorentzVector sum_01 = l0 + l1, sum_23 = l2 + l3;
+                TLorentzVector sum = sum_01 + sum_23;
+                if (sum_01.M() <= 10) continue;
+
+                if (number_sfos == 1) {
+                    if (TMath::Abs(closest_to_Z_mass - 91.1876) <= 5) continue;
+
+                    if (sum.M() < 180) selections->Fill("Summary mass of 4 leptons < 180 GeV", 1);
+                    else selections->Fill("Summary mass of 4 leptons > 180 GeV", 1);
+                }
+                else { // If number_sfos = 2
+
+                    if (sum_23.M() >= 70 && sum_23.M() <= 110) continue;
+
+                    if (sum.M() < 180) {
+                        if (l2.DeltaPhi(l3) >= 2.6) continue;
+                        selections->Fill("Summary mass of 4 leptons < 180 GeV", 1);
+                    }
+                    else {
+                        if (sum_01.M() >= 70 && sum_01.M() <= 110) continue;
+                        selections->Fill("Summary mass of 4 leptons > 180 GeV", 1);
+                    }
+                }
+            }
         }
 
         selections->Fill("Selected events", 1);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // W -> bb
-        /*
-        TLorentzVector P_H2 = make_jet(reader, b_tags[0]) + make_jet(reader, b_tags[1]);
-        double m_bb = P_H2.M();
-        if(m_bb < 105 || m_bb > 135) continue;
-        selections->Fill("Correct Higgs mass", 1);
-
-        if(light.size() > 2) {
-            TLorentzVector v1 = make_jet(reader, light[0]);
-            TLorentzVector v2 = make_jet(reader, light[1]);
-            TLorentzVector v3 = make_jet(reader, light[2]);
-
-            double dR12 = v1.DeltaR(v2);
-            double dR23 = v2.DeltaR(v3);
-            double dR31 = v3.DeltaR(v1);
-
-            if(dR12 <= dR23) {
-                if(dR31 <= dR12) swap(light[1], light[2]); // take dR31
-                else ; // take dR12
-            } else if(dR31 <= dR23) swap(light[1], light[2]); // take dR31
-            else swap(light[0], light[2]); // take dR23
-            light.resize(2);
-        }
-
-        double m_h = 125;
-        TLorentzVector P_w = make_jet(reader, light[0]) + make_jet(reader, light[1]);
-        TLorentzVector P_l = make_lepton(reader, highest_lepton);
-
-        TLorentzVector P_wl, P_n;
-        P_wl = P_w + P_l;
-
-        P_n.SetPtEtaPhiM(reader->MissingET_MET[0], 0, reader->MissingET_Phi[0], 0.0);
-
-
-
-    cout << " =================== > " << endl;
-    bool check_higgs_mass = false;
-        if(D > 0) {
-            long double k = sqrt(D) / 2. / a;
-
-      long double x1 = (-b+ sqrt(D)) / 2. /a;
-      long double x2 = (-b- sqrt(D)) / 2. /a;
-
-      cout << x1 << " " << x2 << endl;
-
-            TLorentzVector p1;
-            p1.SetXYZM(P_n.Px(), P_n.Py(), x - k, P_n.M());
-            TLorentzVector p2;
-            p2.SetXYZM(P_n.Px(), P_n.Py(), x + k, P_n.M());
-
-      if( p1.DeltaR(P_l) < p2.DeltaR(P_l) ) P_n = p1;
-            else P_n = p2;
-
-    double x_chosen = P_n.Pz();
-// =================================
-    double x_math = x_chosen - 1.;
-    double x_step = 1;
-    double x_max  = x_chosen + 1.;
-
-    double C1 = (m_h*m_h - P_wl.M()*P_wl.M())*0.5 + ( P_wl.Px() * P_n.Px() + P_wl.Py() * P_n.Py() );
-    cout << "C1 = " << C1 << " " << C << endl;
-    double delta_best  = 999999;
-    double x_math_best = 0;
-    for(; x_math < x_max; x_math += x_step){
-      // m_h^2 = (P_wl + P_n) * (P_wl + P_n) = m_wl^2 + 2 * E_wl * sqrt(p_n_t^2 + p_n_z^2) - 2 * (p_n_x * p_wl_x + p_n_y * p_wl_y + p_n_z * p_wl_z)
-      // m_h^2 - m_wl^2 + 2 * (p_n_x * p_wl_x + p_n_y * p_wl_y) = 2 * E_wl * sqrt(p_n_t^2 + p_n_z^2) - 2 * p_n_z * p_wl_z
-      double C2_p = P_wl.E() * TMath::Sqrt( P_n.Pt()*P_n.Pt() + x_math*x_math ) - x_math * P_wl.Pz();
-      double C2_m = C2_p + 2 * x_math * P_wl.Pz();
-
-      cout << P_wl.E() * TMath::Sqrt( P_n.Pt()*P_n.Pt() + x_math*x_math ) << endl;
-      cout << x_math * P_wl.Pz() << endl;
-
-      cout << "C2_p = " << C2_p << endl;
-      cout << "C2_m = " << C2_m << endl;
-
-      double delta;
-      delta = abs( C2_p - C1 );
-      // cout << delta << endl;
-      if( delta < delta_best ){
-        delta_best = delta;
-        x_math_best = x_math;
-      }
-      delta = abs( C2_m - C1 );
-      if(delta < delta_best ){
-        delta_best = delta;
-        x_math_best = -x_math;
-      }
-    }
-    cout << "math x best = " << x_math_best << " " << delta_best << endl;
-
-    TLorentzVector P_n_alt;
-    P_n_alt.SetXYZM(P_n.Px(), P_n.Py(), x_math_best, P_n.M());
-        TLorentzVector P_H1_alt = P_n_alt + P_wl;
-    cout << "m_h_alt = " << P_H1_alt.M() << endl;
-// =================================
-        }
-        else{
-      P_n.SetXYZM(P_n.Px(), P_n.Py(), x, P_n.M());
-      check_higgs_mass = true;
-    }
-
-        selections->Fill("System is reconstructible", 1);
-
-        TLorentzVector P_H1 = P_n + P_wl;
-        TLorentzVector P_HH = P_H1 + P_H2;
-
-    // P_n.Print();
-    cout << "m_h_def = " << P_H1.M() << endl;
-
-        if( P_n.Pt() <= 25   ) continue;
-    selections->Fill(" P_n.Pt() <= 25 ", 1);
-
-    if(check_higgs_mass)
-        if( P_H1.M() >= 130  ) continue;
-    selections->Fill(" P_H1.M() >= 130 ", 1);
-
-        if( P_H2.Pt() <= 300 ) continue;
-    selections->Fill(" P_H2.Pt() <= 300 ", 1);
-
-        if( P_H1.Pt() <= 250 ) continue;
-    selections->Fill(" P_H1.Pt() <= 250 ", 1);
-
-        selections->Fill("Non-resonant criteria", 1);
-        selections->Fill("Non-resonant criteria (weighted)", weight);
-  } // end of the selection loop
-
-  for(int i = 1; i < 100; i++){
-    double content = selections->GetBinContent(i);
-    string label = selections->GetXaxis()->GetBinLabel(i);
-
-    if(label.size() < 1) break;
-    cout << label << " | " << content << " " << content  / entrys << " " << content / weight_sum << " " << content / weight_sum * 0.766 << endl;
-  } */
-
     }
 }
-
-
-
-
-
-
-
-
