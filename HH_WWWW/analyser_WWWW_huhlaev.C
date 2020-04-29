@@ -41,6 +41,7 @@ TLorentzVector make_lepton(Delphes* reader, Long64_t index, bool electron) {
 }
 
 struct selected_lepton {
+    selected_lepton () {}
     selected_lepton (Delphes *reader, ULong64_t index1, double pt1, Long64_t charge1, bool electron) {
         index = index1;
         pt = pt1;
@@ -54,12 +55,13 @@ struct selected_lepton {
     bool is_electron; // true - electron, false - muon
     TLorentzVector vec;
 
-    selected_lepton operator= (const selected_lepton& lepton) {
+    selected_lepton& operator= (const selected_lepton& lepton) {
         index = lepton.index;
         pt = lepton.pt;
         charge = lepton.charge;
         is_electron = lepton.is_electron;
         vec = lepton.vec;
+        return *this;
     }
 };
 
@@ -72,9 +74,9 @@ bool operator!= (const selected_lepton& lhs, const selected_lepton& rhs) {
 }
 
 
-void analyser_WWWW (
-        string delphes_file = ""/*"/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/tag_1_delphes_events.root" */,
-        string lhe_file = ""/*"/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/unweighted_events.lhe"*/,
+void analyser_WWWW_huhlaev (
+        string delphes_file = "/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/tag_1_delphes_events.root",
+        string lhe_file = "/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/unweighted_events.lhe",
         bool lhe_format = false, string mode = "" ) {
 
     TRandom rgen;
@@ -119,7 +121,7 @@ void analyser_WWWW (
         selections->Fill("Total", 1);
 
         if ((1 + entry) % 5000 == 0) {
-            cerr << entry << '/' << entrys << endl;
+            cerr << entry << '/' << entries << endl;
             return 0;
         }
 
@@ -158,7 +160,6 @@ void analyser_WWWW (
         selections->Fill("Minimum lepton p_t > 10 GeV", 1);
 
         vector <ULong64_t> jets_indexes;
-        bool b_tag = false;
         for (ULong64_t i = 0; i < reader->Jet_; ++i) {
             if (reader->Jet_PT[i] < 25) continue;
             if (TMath::Abs(reader->Jet_Eta[i]) > 2.5) continue;
@@ -203,14 +204,15 @@ void analyser_WWWW (
         // Remove muons which too close to jets
         vector<ULong64_t> selected_muons;
         for (auto j : muons_indexes) {
+            bool pass = true;
             TLorentzVector muon_vector = make_lepton(reader, j, false);
             for(auto i : jets_indexes) {
                 TLorentzVector jet_vector = make_jet(reader, j);
-                if (jet_vector.DeltaR(muon_vector) > TMath::Min(0.4, 0.04 + 10. / muon_vector.Pt()) continue;
+                if (jet_vector.DeltaR(muon_vector) > TMath::Min(0.4, 0.04 + 10. / muon_vector.Pt())) continue;
                 pass = false;
                 break;
             }
-            if(pass) selected_muons.push_back(i);
+            if(pass) selected_muons.push_back(j);
         }
         muons_indexes = selected_muons;
         selected_muons.clear();
@@ -235,7 +237,7 @@ void analyser_WWWW (
         selections->Fill("Selected muons", muons_indexes.size());
 
         vector<selected_lepton> leptons;
-        for (auto i : elecrons_indexes)  {
+        for (auto i : electrons_indexes)  {
             double pt = reader->Electron_PT[i];
             Long64_t charge = reader->Electron_Charge[i];
             leptons.push_back(selected_lepton(reader, i, pt, charge, true));
@@ -255,7 +257,6 @@ void analyser_WWWW (
         if (number_leptons < 2 and number_leptons > 4) continue;
 
         selections->Fill("At least 2 electrons or muons", 1);
-        selections->Fill("Events with " + to_string(number_leptons) + "electrons or muons", 1);
 
         bool b_tag = false;
         for (auto i : jets_indexes) {
@@ -268,7 +269,7 @@ void analyser_WWWW (
         selections->Fill("Events with no b tags", 1);
 
 
-        vector<vector<selected_lepton>>> sfos; // Same-flavor opposite sign (SFOS)
+        vector<vector<selected_lepton>> sfos; // Same-flavor opposite sign (SFOS)
         Long64_t sum_leptons_charge = 0, min_pt = 1000, max_pt = 0;
         for (ULong64_t i = 0; i < leptons.size(); i++) {
             sum_leptons_charge += leptons[i].charge;
@@ -314,7 +315,7 @@ void analyser_WWWW (
                     sub_nearest_jet_index = i;
                 }
             }
-            TLorenzVector vec_leading_lepton_jets = leptons[1].vec + make_jet(reader, index_nearest_jet_leading) +
+            TLorentzVector vec_leading_lepton_jets = leptons[1].vec + make_jet(reader, index_nearest_jet_leading) +
                                                     make_jet(reader, sub_nearest_jet_index);
 
             if (leptons[0].is_electron && leptons[1].is_electron) {
@@ -341,7 +342,7 @@ void analyser_WWWW (
             }
 
             if (leptons[0].pt <= 20 or leptons[1].pt <= 30) continue;
-            //selections->Fill("Normal min and max pt", 1)
+            selections->Fill("Selected 2 leptons events", 1);
         }
 
         else if (number_leptons == 3) {
@@ -355,7 +356,7 @@ void analyser_WWWW (
             for (int i = 0; i < 3; i++) {
                 for (int j = i + 1; j < 3; j++) {
                     if (leptons[i].is_electron == leptons[j].is_electron) {
-                        TLorenzVector sum = leptons[i].vec + leptons[j].vec;
+                        TLorentzVector sum = leptons[i].vec + leptons[j].vec;
                         if (TMath::Abs(sum.M() - 91.1876) < TMath::Abs(closest_to_Z_mass - 91.1876))
                             closest_to_Z_mass = sum.M();
                     }
@@ -383,7 +384,7 @@ void analyser_WWWW (
 
             bool too_low_mass = false;
             for (vector<selected_lepton> i : sfos) {
-                TLorenzVector sum = i[0].vec + i[1].vec;
+                TLorentzVector sum = i[0].vec + i[1].vec;
                 if (sum.M() < 15) {
                     too_low_mass = true;
                     break;
@@ -395,7 +396,7 @@ void analyser_WWWW (
             ULong64_t index_nearest_jet, index_sub_nearest_jet;
             for (auto i : jets_indexes) {
                 TLorentzVector vec_jet = make_jet(reader, i);
-                double R = vec_jet.DeltaR(l3);
+                double R = vec_jet.DeltaR(l3.vec);
                 if (R < nearest_R) {
                     sub_nearest_R = nearest_R;
                     index_sub_nearest_jet = index_nearest_jet;
@@ -408,24 +409,25 @@ void analyser_WWWW (
                 }
             }
 
-            TLorentzVector sum23 = l2 + l3;
-            TLorentzVector sum3_jet = l3 + make_jet(reader, index_nearest_jet);
+            TLorentzVector sum23 = l2.vec + l3.vec;
+            TLorentzVector sum3_jet = l3.vec + make_jet(reader, index_nearest_jet);
             TLorentzVector sum3_two_jets = sum3_jet + make_jet(reader, index_sub_nearest_jet);
 
             if (number_sfos == 0) {
-                if (l2.DeltaR(l3) < 2.47 || l2.DeltaR(l3) > 5.85) continue;
+                if (l2.vec.DeltaR(l3.vec) < 2.47 || l2.vec.DeltaR(l3.vec) > 5.85) continue;
                 if (sum23.M() < 10 || sum23.M() > 70) continue;
                 if (sum3_two_jets.M() < 50 || sum3_two_jets.M() > 110) continue;
                 if (sum3_jet.M() < 15 || sum3_jet.M() > 50) continue;
 
             }
             else { // If number_sfos = 1 or 2
-                if (l2.DeltaR(l3) < 2.16 || l2.DeltaR(l3) > 3.5) continue;
+                if (l2.vec.DeltaR(l3.vec) < 2.16 || l2.vec.DeltaR(l3.vec) > 3.5) continue;
                 if (sum23.M() < 10 || sum23.M() > 70) continue;
                 if (sum3_two_jets.M() < 50 || sum3_two_jets.M() > 115) continue;
                 if (sum3_jet.M() < 15 || sum3_jet.M() > 45) continue;
 
             }
+            selections->Fill("Selected 3 leptons events", 1);
 
         }
 
@@ -436,7 +438,7 @@ void analyser_WWWW (
             if (jets_indexes.size() < 2) continue;
             if (leptons[3].pt <= 22) continue;
 
-            bool too_low_mass = false
+            bool too_low_mass = false;
             for (auto i : sfos) {
                 TLorentzVector sum = i[0].vec + i[1].vec;
                 if (sum.M() <= 4) {
@@ -452,8 +454,8 @@ void analyser_WWWW (
                 double closest_to_Z_mass = 1000000;
                 for (int i = 0; i < 4; i++) {
                     for (int j = i + 1; j < 4; j++) {
-                        TLorenzVector sum = leptons[i].vec + leptons[j].vec;
-                        if (leptrons[i].is_electron != leptons[j].is_electron && leptons[i].charge != leptons[j].charge
+                        TLorentzVector sum = leptons[i].vec + leptons[j].vec;
+                        if (leptons[i].is_electron != leptons[j].is_electron && leptons[i].charge != leptons[j].charge
                             && TMath::Abs(sum.M() - 91.1876) < TMath::Abs(closest_to_Z_mass - 91.1876)) {
                             closest_to_Z_mass = sum.M();
                             if (leptons[i].pt > leptons[j].pt) {
@@ -478,10 +480,10 @@ void analyser_WWWW (
                     l0 = l1;
                     l1 = tmp;
                 }
-                TLorentzVector sum = l0 + l1;
+                TLorentzVector sum = l0.vec + l1.vec;
                 if (sum.M() <= 10) continue;
 
-                sum += l2 + l3;
+                sum += l2.vec + l3.vec;
                 if (sum.M() < 180) selections->Fill("Summary mass of 4 leptons < 180 GeV", 1);
                 else selections->Fill("Summary mass of 4 leptons > 180 GeV", 1);
             }
@@ -512,7 +514,7 @@ void analyser_WWWW (
                     l1 = tmp;
                 }
 
-                TLorentzVector sum_01 = l0 + l1, sum_23 = l2 + l3;
+                TLorentzVector sum_01 = l0.vec + l1.vec, sum_23 = l2.vec + l3.vec;
                 TLorentzVector sum = sum_01 + sum_23;
                 if (sum_01.M() <= 10) continue;
 
@@ -527,7 +529,7 @@ void analyser_WWWW (
                     if (sum_23.M() >= 70 && sum_23.M() <= 110) continue;
 
                     if (sum.M() < 180) {
-                        if (l2.DeltaPhi(l3) >= 2.6) continue;
+                        if (l2.vec.DeltaPhi(l3.vec) >= 2.6) continue;
                         selections->Fill("Summary mass of 4 leptons < 180 GeV", 1);
                     }
                     else {
@@ -540,5 +542,14 @@ void analyser_WWWW (
 
         selections->Fill("Selected events", 1);
 
+    }
+
+    for(int i = 1; i < 100; ++i) {
+        double passed = selections->GetBinContent(i);
+        string label = selections->GetXaxis()->GetBinLabel(i);
+
+        if(label.size() < 1) break;
+        cout << "dic[\"" + label + "\"]" << "=[" << passed
+            << ", " << passed  / entries << ", " << passed / weight_sum << "]" << endl;
     }
 }
