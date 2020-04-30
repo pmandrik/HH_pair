@@ -327,29 +327,28 @@ void analyser_WWWW_huhlaev (
                                                     make_jet(reader, sub_nearest_jet_index);
 
             if (leptons[0].is_electron && leptons[1].is_electron) {
-                //if (TMath::Abs(sum_leptons.M() - 91.1876) <= 10) continue;  // Comparison with M_Z
-                //if (sum_leptons.M() > 270 || sum_leptons.M() < 55) continue;
-                //if (nearest_R_leading > 1.15 || nearest_R_leading < 0.2) continue;
-                //if (nearest_R_sub_leading > 1.4 || nearest_R_sub_leading < 0.2) continue;
-                //if (vec_leading_lepton_jets.M() < 40 || vec_leading_lepton_jets.M() > 285) continue;
+                if (TMath::Abs(sum_leptons.M() - 91.1876) <= 10) continue;  // Comparison with M_Z
+                if (sum_leptons.M() > 270 || sum_leptons.M() < 55) continue;
+                if (nearest_R_leading > 1.15 || nearest_R_leading < 0.2) continue;
+                if (nearest_R_sub_leading > 1.4 || nearest_R_sub_leading < 0.2) continue;
+                if (vec_leading_lepton_jets.M() < 40 || vec_leading_lepton_jets.M() > 285) continue;
 
             }
             else if (!leptons[0].is_electron && !leptons[1].is_electron) {
-                //if (sum_leptons.M() > 250 || sum_leptons.M() < 60) continue;
-                //if (nearest_R_leading > 0.75 || nearest_R_leading < 0.2) continue;
-                //if (nearest_R_sub_leading > 1.05 || nearest_R_sub_leading < 0.2) continue;
-                //if (vec_leading_lepton_jets.M() < 30 || vec_leading_lepton_jets.M() > 310) continue;
+                if (sum_leptons.M() > 250 || sum_leptons.M() < 60) continue;
+                if (nearest_R_leading > 0.75 || nearest_R_leading < 0.2) continue;
+                if (nearest_R_sub_leading > 1.05 || nearest_R_sub_leading < 0.2) continue;
+                if (vec_leading_lepton_jets.M() < 30 || vec_leading_lepton_jets.M() > 310) continue;
 
             }
             else { // If there are one electron and one muon
-                //if (sum_leptons.M() > 250 || sum_leptons.M() < 75) continue;
-                //if (nearest_R_leading > 0.8 || nearest_R_leading < 0.2) continue;
-                //if (nearest_R_sub_leading > 1.15 || nearest_R_sub_leading < 0.2) continue;
-                //if (vec_leading_lepton_jets.M() < 35 || vec_leading_lepton_jets.M() > 350) continue;
-
+                if (sum_leptons.M() > 250 || sum_leptons.M() < 75) continue;
+                if (nearest_R_leading > 0.8 || nearest_R_leading < 0.2) continue;
+                if (nearest_R_sub_leading > 1.15 || nearest_R_sub_leading < 0.2) continue;
+                if (vec_leading_lepton_jets.M() < 35 || vec_leading_lepton_jets.M() > 350) continue;
             }
 
-            //if (leptons[0].pt <= 20 or leptons[1].pt <= 30) continue;
+            if (leptons[0].pt <= 20 or leptons[1].pt <= 30) continue;
             selections->Fill("2l channel - selected", 1);
         }
 
