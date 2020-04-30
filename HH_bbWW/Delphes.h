@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Apr 13 05:42:00 2020 by ROOT version 6.20/04
+// Sat Apr 18 12:11:02 2020 by ROOT version 6.20/04
 // from TTree Delphes/Analysis tree
-// found on file: ../../../test_bbWW/delphes_1.root
+// found on file: ../../../test_bbWW_1/delphes_1.root
 //////////////////////////////////////////////////////////
 
 #ifndef Delphes_h
@@ -24,13 +24,13 @@ public :
 // Fixed size dimensions of array or collections stored in the TTree if any.
    static constexpr Int_t kMaxEvent = 1;
    static constexpr Int_t kMaxEventLHEF = 1;
-   static constexpr Int_t kMaxWeightLHEF = 40;
-   static constexpr Int_t kMaxGenJet = 18;
+   static constexpr Int_t kMaxWeightLHEF = 1;
+   static constexpr Int_t kMaxGenJet = 17;
    static constexpr Int_t kMaxGenMissingET = 1;
    static constexpr Int_t kMaxJet = 16;
-   static constexpr Int_t kMaxElectron = 4;
+   static constexpr Int_t kMaxElectron = 3;
    static constexpr Int_t kMaxPhoton = 2;
-   static constexpr Int_t kMaxMuon = 4;
+   static constexpr Int_t kMaxMuon = 3;
    static constexpr Int_t kMaxMissingET = 1;
    static constexpr Int_t kMaxScalarHT = 1;
 
@@ -419,9 +419,9 @@ Delphes::Delphes(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("../../../test_bbWW/delphes_1.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("../../../test_bbWW_1/delphes_1.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("../../../test_bbWW/delphes_1.root");
+         f = new TFile("../../../test_bbWW_1/delphes_1.root");
       }
       f->GetObject("Delphes",tree);
 
@@ -503,10 +503,10 @@ void Delphes::Init(TTree *tree)
    fChain->SetBranchAddress("EventLHEF.AlphaQCD", EventLHEF_AlphaQCD, &b_EventLHEF_AlphaQCD); fChain->SetBranchStatus("EventLHEF.AlphaQCD", 0);
    fChain->SetBranchAddress("EventLHEF_size", &EventLHEF_size, &b_EventLHEF_size); fChain->SetBranchStatus("EventLHEF_size", 0);
    fChain->SetBranchAddress("WeightLHEF", &WeightLHEF_, &b_WeightLHEF_); fChain->SetBranchStatus("WeightLHEF", 0);
-   fChain->SetBranchAddress("WeightLHEF.fUniqueID", WeightLHEF_fUniqueID, &b_WeightLHEF_fUniqueID); fChain->SetBranchStatus("WeightLHEF.fUniqueID", 0);
-   fChain->SetBranchAddress("WeightLHEF.fBits", WeightLHEF_fBits, &b_WeightLHEF_fBits); fChain->SetBranchStatus("WeightLHEF.fBits", 0);
-   fChain->SetBranchAddress("WeightLHEF.ID", WeightLHEF_ID, &b_WeightLHEF_ID); fChain->SetBranchStatus("WeightLHEF.ID", 0);
-   fChain->SetBranchAddress("WeightLHEF.Weight", WeightLHEF_Weight, &b_WeightLHEF_Weight); fChain->SetBranchStatus("WeightLHEF.Weight", 0);
+   fChain->SetBranchAddress("WeightLHEF.fUniqueID", &WeightLHEF_fUniqueID, &b_WeightLHEF_fUniqueID); fChain->SetBranchStatus("WeightLHEF.fUniqueID", 0);
+   fChain->SetBranchAddress("WeightLHEF.fBits", &WeightLHEF_fBits, &b_WeightLHEF_fBits); fChain->SetBranchStatus("WeightLHEF.fBits", 0);
+   fChain->SetBranchAddress("WeightLHEF.ID", &WeightLHEF_ID, &b_WeightLHEF_ID); fChain->SetBranchStatus("WeightLHEF.ID", 0);
+   fChain->SetBranchAddress("WeightLHEF.Weight", &WeightLHEF_Weight, &b_WeightLHEF_Weight); fChain->SetBranchStatus("WeightLHEF.Weight", 0);
    fChain->SetBranchAddress("WeightLHEF_size", &WeightLHEF_size, &b_WeightLHEF_size); fChain->SetBranchStatus("WeightLHEF_size", 0);
    fChain->SetBranchAddress("GenJet", &GenJet_, &b_GenJet_);
    fChain->SetBranchAddress("GenJet.fUniqueID", GenJet_fUniqueID, &b_GenJet_fUniqueID); fChain->SetBranchStatus("GenJet.fUniqueID", 0);

@@ -13,7 +13,7 @@ export PATH=/cvmfs/sft.cern.ch/lcg/releases/ROOT/6.08.06-b32f2/x86_64-slc6-gcc62
 
 
 #include "Delphes.C"
-#include "LHEReader.C"
+#include "../LHEReader.C"
 
 TRandom rgen;
 
@@ -75,8 +75,8 @@ bool operator!= (const selected_lepton& lhs, const selected_lepton& rhs) {
 
 
 void analyser_WWWW_huhlaev (
-        string delphes_file = "/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/tag_1_delphes_events.root",
-        string lhe_file = "/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/unweighted_events.lhe",
+        string delphes_file = "../../../HH_WWWW_samples/WWWW_10k_events.root",
+        string lhe_file = "../../../HH_WWWW_samples/WWWW_10k_events.lhe",
         bool lhe_format = false, string mode = "" ) {
 
     TRandom rgen;
@@ -112,6 +112,10 @@ void analyser_WWWW_huhlaev (
     selections->Fill("muR_10_muF_20", 0);
     selections->Fill("muR_20_muF_10", 0);
     selections->Fill("muR_20_muF_20", 0);
+    selections->Fill("2l channel - number_leptons == 2", 1);
+    selections->Fill("2l channel - TMath::Abs(sum_leptons_charge) != 2", 1);
+    selections->Fill("2l channel - jets_indexes.size() < 3", 1);
+    selections->Fill("2l channel - selected", 1);
 
     Long64_t entries = tree->GetEntries();
     double weight_sum = 0;
@@ -122,7 +126,6 @@ void analyser_WWWW_huhlaev (
 
         if ((1 + entry) % 5000 == 0) {
             cerr << entry << '/' << entries << endl;
-            return 0;
         }
 
         reader_lhe.ReadEvent();
@@ -166,6 +169,7 @@ void analyser_WWWW_huhlaev (
             jets_indexes.push_back(i);
             selections->Fill("Pre-selected jets", 1);
         }
+        cout << "jets_indexes = " << jets_indexes.size() << endl;
 
         // Remove jets which too close to leptons
         vector<ULong64_t> selected_jets;
@@ -284,10 +288,14 @@ void analyser_WWWW_huhlaev (
         int number_sfos = sfos.size();
 
         if (number_leptons == 2) {
+            selections->Fill("2l channel - number_leptons == 2", 1);
 
             if (TMath::Abs(sum_leptons_charge) != 2) continue;
-            selections->Fill("Correct summary charge", 1);
+            selections->Fill("2l channel - TMath::Abs(sum_leptons_charge) != 2", 1);
+
+            cout << jets_indexes.size() << endl;
             if (jets_indexes.size() < 3) continue;
+            selections->Fill("2l channel - jets_indexes.size() < 3", 1);
 
             TLorentzVector sum_leptons = leptons[0].vec + leptons[1].vec;
 
@@ -319,30 +327,30 @@ void analyser_WWWW_huhlaev (
                                                     make_jet(reader, sub_nearest_jet_index);
 
             if (leptons[0].is_electron && leptons[1].is_electron) {
-                if (TMath::Abs(sum_leptons.M() - 91.1876) <= 10) continue;  // Comparison with M_Z
-                if (sum_leptons.M() > 270 || sum_leptons.M() < 55) continue;
-                if (nearest_R_leading > 1.15 || nearest_R_leading < 0.2) continue;
-                if (nearest_R_sub_leading > 1.4 || nearest_R_sub_leading < 0.2) continue;
-                if (vec_leading_lepton_jets.M() < 40 || vec_leading_lepton_jets.M() > 285) continue;
+                //if (TMath::Abs(sum_leptons.M() - 91.1876) <= 10) continue;  // Comparison with M_Z
+                //if (sum_leptons.M() > 270 || sum_leptons.M() < 55) continue;
+                //if (nearest_R_leading > 1.15 || nearest_R_leading < 0.2) continue;
+                //if (nearest_R_sub_leading > 1.4 || nearest_R_sub_leading < 0.2) continue;
+                //if (vec_leading_lepton_jets.M() < 40 || vec_leading_lepton_jets.M() > 285) continue;
 
             }
             else if (!leptons[0].is_electron && !leptons[1].is_electron) {
-                if (sum_leptons.M() > 250 || sum_leptons.M() < 60) continue;
-                if (nearest_R_leading > 0.75 || nearest_R_leading < 0.2) continue;
-                if (nearest_R_sub_leading > 1.05 || nearest_R_sub_leading < 0.2) continue;
-                if (vec_leading_lepton_jets.M() < 30 || vec_leading_lepton_jets.M() > 310) continue;
+                //if (sum_leptons.M() > 250 || sum_leptons.M() < 60) continue;
+                //if (nearest_R_leading > 0.75 || nearest_R_leading < 0.2) continue;
+                //if (nearest_R_sub_leading > 1.05 || nearest_R_sub_leading < 0.2) continue;
+                //if (vec_leading_lepton_jets.M() < 30 || vec_leading_lepton_jets.M() > 310) continue;
 
             }
             else { // If there are one electron and one muon
-                if (sum_leptons.M() > 250 || sum_leptons.M() < 75) continue;
-                if (nearest_R_leading > 0.8 || nearest_R_leading < 0.2) continue;
-                if (nearest_R_sub_leading > 1.15 || nearest_R_sub_leading < 0.2) continue;
-                if (vec_leading_lepton_jets.M() < 35 || vec_leading_lepton_jets.M() > 350) continue;
+                //if (sum_leptons.M() > 250 || sum_leptons.M() < 75) continue;
+                //if (nearest_R_leading > 0.8 || nearest_R_leading < 0.2) continue;
+                //if (nearest_R_sub_leading > 1.15 || nearest_R_sub_leading < 0.2) continue;
+                //if (vec_leading_lepton_jets.M() < 35 || vec_leading_lepton_jets.M() > 350) continue;
 
             }
 
-            if (leptons[0].pt <= 20 or leptons[1].pt <= 30) continue;
-            selections->Fill("Selected 2 leptons events", 1);
+            //if (leptons[0].pt <= 20 or leptons[1].pt <= 30) continue;
+            selections->Fill("2l channel - selected", 1);
         }
 
         else if (number_leptons == 3) {

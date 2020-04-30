@@ -4,8 +4,11 @@
 path="../../../test_bbWW"
 input_file_delphes=$path"/delphes_1.root"
 
-#path="../../../test_bbWW_fix"
-#input_file_delphes=$path"/delphes_1_fix.root"
+if [ "$1" = "old" ]; then
+  # path="../../../test_bbWW_fix"
+  path="../../../test_bbWW_1"
+  input_file_delphes=$path"/delphes_1.root"
+fi
 
 path_lhe="../../../HH_lhe_samples"
 input_file_lhe=$path_lhe"/GF_HH_1_cmsgrid_final.lhe"

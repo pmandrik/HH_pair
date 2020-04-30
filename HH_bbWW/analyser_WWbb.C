@@ -17,8 +17,8 @@ TLorentzVector make_jet(Delphes* reader, Long64_t index, int JES, int JER) {
 	vec.SetPtEtaPhiM(reader->Jet_PT[index], reader->Jet_Eta[index], reader->Jet_Phi[index], reader->Jet_Mass[index]);
 
 	// correction
-	double corr = (1 + JES * JES_unc) * (1 + JER * JER_unc * rgen.Gaus());
-	vec.SetXYZM(vec.Px() * corr, vec.Py() * corr, vec.Pz() * corr, vec.M());
+	//double corr = (1 + JES * JES_unc) * (1 + JER * JER_unc * rgen.Gaus());
+	//vec.SetXYZM(vec.Px() * corr, vec.Py() * corr, vec.Pz() * corr, vec.M());
 
 	return vec;
 }
@@ -98,20 +98,24 @@ void analyser_WWbb(
 	selections.Fill("Total", 0);
 	selections.Fill("Total (weighted)", 0);
 	selections.Fill("At least electron or muon", 0);
+  selections.Fill("Missing Et > 25", 0);
 	selections.Fill("Maximum lepton p_t > 27 GeV", 0);
 	selections.Fill("Exactly two b tags", 0);
 	selections.Fill("At least two light jets", 0);
 	selections.Fill("Correct Higgs mass", 0);
+  selections.Fill("pT bb > 300", 0);
 	selections.Fill("System is reconstructible", 0);
-  selections.Fill("Selected", 1);
-  selections.Fill("Selected (weighted)", weight);
+  selections.Fill("M(WW*) < 130", 0);
+  selections.Fill("pT(WW*) > 250", 0);
+  selections.Fill("Selected", 0);
+  selections.Fill("Selected (weighted)", 0);
 
   Long64_t entries = tree->GetEntries();
 	vector<double> higgs;
 	for(ULong64_t entry = 0; entry < entries; ++entry) {
 		// if(entry % 1000 == 0)
 		// cerr << entry << '/' << entries << endl;
-    // if(entry > 100000) break; 
+    if(entry >= 100000) break; 
 
 		reader->GetEntry(entry);
 
@@ -224,6 +228,9 @@ void analyser_WWbb(
     // EVENT SELECTIONS ============================================ ============================================
 		if(selected_muons.size() == 0 and selected_electrons.size() == 0) continue;
 		selections.Fill("At least electron or muon", 1);
+    
+    if( reader->MissingET_MET[0] < 25 ) continue;
+		selections.Fill("Missing Et > 25", 1);
 
     double highest_pt = 0;
 		ULong64_t highest_lepton = 0;
@@ -249,12 +256,18 @@ void analyser_WWbb(
 		if(light.size() < 2) continue;
 		selections.Fill("At least two light jets", 1);
 		
-		// W -> bb
-		TLorentzVector P_H2 = make_jet(reader, b_tags[0], JES, JER) + make_jet(reader, b_tags[1], JES, JER);
+    TLorentzVector b1 = make_jet(reader, b_tags[0], JES, JER);
+    TLorentzVector b2 = make_jet(reader, b_tags[1], JES, JER);
+		TLorentzVector P_H2 = b1 + b2;
 		double m_bb = P_H2.M();
+    
 		if(m_bb < 105 || m_bb > 135) continue;
 		selections.Fill("Correct Higgs mass", 1);
+    
+    if( P_H2.Pt() <= 300 ) continue;
+		selections.Fill("pT bb > 300", 1);
 
+    // W -> bb
 		if(light.size() > 2) {
 			TLorentzVector v1 = make_jet(reader, light[0], JES, JER);
 			TLorentzVector v2 = make_jet(reader, light[1], JES, JER);
@@ -321,12 +334,12 @@ void analyser_WWbb(
 		TLorentzVector P_H1 = P_n + P_wl;
 		TLorentzVector P_HH = P_H1 + P_H2;
 
-		if (P_n.Pt() <= 25
-		 || P_H1.M() >= 130
-		 || P_H2.Pt() <= 300
-		 || P_H1.Pt() <= 250
-		) continue;
-		
+		if( P_H1.M() >= 130 ) continue;
+		selections.Fill("M(WW*) < 130", 1);
+    
+		if( P_H1.Pt() <= 250 ) continue;
+    selections.Fill("pT(WW*) > 250", 1);
+
 		selections.Fill("Selected", 1);
 		selections.Fill("Selected (weighted)", weight);
 
@@ -362,7 +375,7 @@ void analyser_WWbb(
 	}
 
 	double total = selections.GetBinContent(1);
-	double total_weighted = selections.GetBinContent(9);
+	double total_weighted = selections.GetBinContent(2);
 
 	for(int i = 1; i < 100; ++i) {
 		double passed = selections.GetBinContent(i);

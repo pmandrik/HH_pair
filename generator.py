@@ -279,6 +279,7 @@ SysCalc:fullCutVariation = off
 
 def make_all() :
   for i, bench in enumerate(benchmarks) : 
+    if i : break
     lines = ""
     for val, code in zip(bench, parameters_map):
       lines += "set param_card bsm " + str(code) + " " + str(val) + "\n"
@@ -297,7 +298,7 @@ def make_all() :
     # generate p p > h h, (h > b b~), (h > b b~)
     # 0.21046 +- 0.0028558
 
-    processes = ["bbbb", "yybb", "yyWW"]
+    processes = ["WWWW"]
 
     for proc in processes:
       # bbbb - pure pythia
@@ -333,6 +334,9 @@ def make_all() :
 
       if proc == "yyWW":
         dic["PYTHIA_HIGGS_DECAY"] = "25:offIfAny = 1 2 3 4 5 11 12 13 14 15 16 17 18 21 23"
+
+      if proc == "WWWW":
+        dic["PYTHIA_HIGGS_DECAY"] = "25:offIfAny = 1 2 3 4 5 11 12 13 14 15 16 17 18 21 22 23"
 
       proc_card = proc_template.format( **dic )
       madspin_card = madspin_template.format( **dic )
