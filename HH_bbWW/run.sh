@@ -1,18 +1,20 @@
 
+wdir=`pwd`
+adir="results"
+mkdir $adir
 
+run_anal(){
+  postfix=$1
+  input_file_delphes=$2
+  input_file_lhe=$3
 
-path="../../../test_bbWW"
-input_file_delphes=$path"/delphes_1.root"
+  root -l -b -q "../make_interface.C(\""$input_file_delphes"\")"
+  python ../turn_off_unused_branches.py
+  root -l -b -q "analyser_WWbb.C(\""$input_file_delphes"\", \""$input_file_lhe"\")" > $adir/"log_"$postfix".log"
+}
 
-if [ "$1" = "old" ]; then
-  # path="../../../test_bbWW_fix"
-  path="../../../test_bbWW_1"
-  input_file_delphes=$path"/delphes_1.root"
-fi
+for index in 1 2 3 4 5 6 7 8 9 10 11 12; do
+  run_anal "EFT_"$index "../../../test_bbWW/delphes_"$index".root" "../../../HH_lhe_samples/GF_HH_"$index"_cmsgrid_final.lhe"
+done
 
-path_lhe="../../../HH_lhe_samples"
-input_file_lhe=$path_lhe"/GF_HH_1_cmsgrid_final.lhe"
-
-root -l -b -q "../make_interface.C(\""$input_file_delphes"\")"
-python ../turn_off_unused_branches.py
-root -l -b -q "analyser_WWbb.C(\""$input_file_delphes"\", \""$input_file_lhe"\")"
+run_anal "SM" "../../../test_bbWW/delphes_1.root" "../../../HH_lhe_samples/GF_HH_1_cmsgrid_final.lhe"

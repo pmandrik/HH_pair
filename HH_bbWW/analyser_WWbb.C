@@ -61,11 +61,12 @@ void GetPDFError(double& pdf_err, HEPEUP& hepeup, const std::vector<unsigned>& p
 void analyser_WWbb(
 	string data = "/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/SM/tag_2_delphes_events.root",
 	string events = "/beegfs/lfi.mipt.su/scratch/MadGraph/HH_bbWW/SM/unweighted_events_2.lhe",
-	int JES = 0,
-	int JER = 0
+  string mode=""
 ) {
 	bool lhe_format = data.find("SM") == std::string::npos;
   // lhe_format = false;
+  double JES = 0;
+  double JER = 0;
 
 	TFile file(data.c_str());
 	TTree * tree = (TTree*) file.Get("Delphes");
@@ -104,7 +105,7 @@ void analyser_WWbb(
 	selections.Fill("At least two light jets", 0);
 	selections.Fill("Correct Higgs mass", 0);
   selections.Fill("pT bb > 300", 0);
-	selections.Fill("System is reconstructible", 0);
+	selections.Fill("System is reconstructable", 0);
   selections.Fill("M(WW*) < 130", 0);
   selections.Fill("pT(WW*) > 250", 0);
   selections.Fill("Selected", 0);
@@ -115,7 +116,7 @@ void analyser_WWbb(
 	for(ULong64_t entry = 0; entry < entries; ++entry) {
 		// if(entry % 1000 == 0)
 		// cerr << entry << '/' << entries << endl;
-    if(entry >= 100000) break; 
+    // if(entry >= 100000) break; 
 
 		reader->GetEntry(entry);
 
