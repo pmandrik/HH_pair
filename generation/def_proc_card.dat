@@ -1,0 +1,5 @@
+
+import model BSM_gg_hh
+generate p p > h h
+output HH_def
+exit
